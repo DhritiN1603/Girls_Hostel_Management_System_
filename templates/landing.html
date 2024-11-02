@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Georgia;
+            color: white;
+        }
+        .background {
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .background img {
+            position: absolute;
+            min-width: 100%; min-height: 100%;
+            width: auto; height: auto;
+            z-index: 1; opacity: 0; 
+            transition: opacity 1s ease-in-out; 
+        }
+        
+        .content {
+            position: relative;
+            z-index: 2; text-align: center;
+            padding-top: 20%;
+        }
+        h1 {
+            font-size: 5.6rem; 
+            margin-bottom: 30px; 
+            color: white; 
+            text-shadow: 0 0 5px black, 0 0 10px black; /* Black outline effect */
+        }
+        .quote {
+            font-size: 1.5rem; 
+            color: white; 
+            text-shadow: 0 0 5px black, 0 0 10px black; /* Black outline effect */
+            margin-top: 10px; /* Space above the quote */
+        }
+        .pulsing-button {
+            margin-top: 20px; display: inline-block;
+            padding: 10px 20px; font-size: 1.2rem; 
+            border: none; border-radius: 5px;
+            background-color: #006fff; color: white;
+            cursor: pointer; animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background">
+        <img src="{{ url_for('static', filename='Hostel.jpg') }}" alt="Background Image 4">
+        <img src="{{ url_for('static', filename='corridor.jpg') }}" alt="Background Image 5">
+        <img src="{{ url_for('static', filename='games.jpg') }}" alt="Background Image 1">
+        <img src="{{ url_for('static', filename='rooms.jpg') }}" alt="Background Image 2">
+        <img src="{{ url_for('static', filename='study_hall.jpg') }}" alt="Background Image 3">
+        
+        <div class="content">
+            <h1 id="living-space">LIVING SPACE</h1>
+            <div class="quote">Home is where your story begins.</div> <!-- Static quote -->
+            <button class="pulsing-button" onclick="location.href='{{ url_for('login') }}';">LOGIN</button>
+        </div>
+    </div>
+    
+    <script>
+        const images = document.querySelectorAll('.background img');
+        let currentIndex = 0;
+
+        function showNextImage() {
+            images[currentIndex].style.opacity = '0'; 
+            currentIndex = (currentIndex + 1) % images.length; 
+            images[currentIndex].style.opacity = '0.65';
+        }
+        images[currentIndex].style.opacity = '0.65'; 
+        setInterval(showNextImage, 5000);
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    
+</head>
+<body class="background-radial-gradient overflow:hidden">
+    <div class="container mt-4">
+
+    <style>
+      .background-radial-gradient {
+        background-color: hsl(218, 41%, 15%);
+        background-image: radial-gradient(100px circle at 0% 0%,hsl(218, 41%, 35%) 15%,hsl(218, 41%, 30%) 35%,hsl(218, 41%, 20%) 75%,hsl(218, 41%, 19%) 80%,
+            transparent 100%),
+          radial-gradient(1250px circle at 100% 100%,hsl(218, 41%, 45%) 15%,hsl(218, 41%, 30%) 35%,hsl(218, 41%, 20%) 75%,hsl(218, 41%, 19%) 80%,
+            transparent 100%);
+      }
+      /* Ball animations */
+      @keyframes float1 { 0%, 100% { transform: translate(0, 0); } 60% { transform: translate(20px, -20px); } }
+      @keyframes float2 { 0%, 100% { transform: translate(0, 0); } 60% { transform: translate(-15px, 35px); } }
+      @keyframes float3 { 0%, 100% { transform: translate(0, 0); } 60% { transform: translate(25px, -15px); } }
+      @keyframes float4 { 0%, 100% { transform: translate(0, 0); } 60% { transform: translate(-20px, 25px); } }
+
+      /* Circle styles */
+      .circle {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.8;
+      }
+
+      /* Original Shapes */
+      #radius-shape-1 { height: 220px; width: 220px; top: -60px; left: -130px; background: radial-gradient(#e3a9e8, #110c94); animation: float1 9s ease-in-out infinite; }
+      #radius-shape-2 { height: 300px; width: 300px; bottom: -60px; right: -110px; background: radial-gradient(#e3a9e8, #0b075c); animation: float2 8s ease-in-out infinite; }
+      #radius-shape-3 { height: 300px; width: 300px; bottom: 60px; right: 1000px; background: radial-gradient(#e3a9e8, #13035c); animation: float3 12s ease-in-out infinite; }
+      #radius-shape-4 { height: 170px; width: 170px; top: 400px; left: -250px; background: radial-gradient(#e3a9e8, #390054); animation: float4 10s ease-in-out infinite; }
+
+      /* Glass effect for card background */
+      .bg-glass {
+        background-color: hsla(0, 0%, 100%, 0.9) !important;
+        backdrop-filter: saturate(200%) blur(25px);
+      }
+      #typing-text{
+    font-size: 50px;
+    padding:5px;
+    padding-bottom: 70px;
+    
+    color:rgb(243, 243, 243);
+    font-weight: bolder;
+}
+    </style>  
+        
+    <div class="container-fluid  px-5 px-md-5 py-5 text-center text-lg-start my-5">
+      <div class="row gx-lg-5 align-items-center mb-5">
+        <div class="col-lg-6 mb-5 mb-lg-0" style="z-index: 10">
+            <div id="typing-text"></div>
+            <script type="text/javascript">
+            
+                const text = '"Where strangers become friends and friends become family."'
+              
+                // HTML element where the text will be displayed
+                const textEle = document.getElementById("typing-text");
+                let index = 0;
+                function typeText() {
+                  if (index < text.length) {
+                    textEle.innerHTML += text.charAt(index);
+                    index++;
+                    setTimeout(typeText, 60);
+                  }
+                }
+                typeText();
+              </script>        
+        </div>
+
+        <div class="col-lg-6 mb-5 mb-lg-0 position-relative">
+          <div id="radius-shape-1" class="position-absolute rounded-circle shadow-5-strong"></div>
+          <div id="radius-shape-2" class="position-absolute rounded-circle shadow-5-strong"></div>
+          <div id="radius-shape-3" class="position-absolute rounded-circle shadow-6-strong"></div>
+          <div id="radius-shape-4" class="position-absolute rounded-circle shadow-6-strong"></div>
+
+          <div class="card bg-glass">
+            <div class="card-body px-4 py-4 px-md-5">
+              <form method="POST">
+                <div class="row">
+                  <h1 class="mb-5 h3" style="text-align: center;">REGISTER</h1>
+                </div>
+                
+                <!-- Name input-->
+                <div class="form-outline mb-2">
+                    <label class="form-label">Full Name<red style="color:red"> * </red></label>
+                    <input required type="text" maxlength=40 name="fname" id="fname" placeholder="Enter Your Name" class="form-control" />
+                    
+                  </div>
+                <!--Student University Number-->
+                <div class="form-outline mb-2">
+                    <label class="form-label">SRN<red style="color:red"> * </red></label>
+                  <input required type="text" minlength="13"name="srn" id="srn" placeholder="Enter Your SRN" class="form-control" />
+                  
+                </div>
+                <!-- Semester -->
+                <div class="form-outline mb-2">
+                    <label class="form-label">Semester<red style="color:red"> * </red></label>
+                  <input required type="number" maxlength="1" name="sem" id="sem" placeholder="Enter Your Semester" class="form-control" />
+                  
+                </div>
+
+                <!-- Unit input -->
+                <div class="form-outline mb-2">
+                    <label class="form-label" style="font-size: 1rem; display: block;">Preferred Unit <span style="color:red"> * </span></label>
+                  <select required name="unit" id="unit" class="form-control">
+                    <option value="" disabled selected>Select Your Preferred Unit</option>
+                    <option value="1">Unit 1</option>
+                    <option value="2">Unit 2</option>
+                    <option value="3">Unit 3</option>
+                  </select>
+                  
+                </div>
+                <br>
+                
+                <div class="text-center"><button type="submit" class="btn btn-primary btn-block px-5 mb-3">REGISTER</button></div>
+
+                <!-- TO redirect to the signup page -->
+                <div class="text-center">
+                  <p>Already Registered?<a href="{{ url_for('login') }}"> </p>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+</body>
+</html>
