@@ -1,0 +1,222 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Weekly Menu{% endblock %}
+
+
+{% block content %}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
+    .menu-container {
+        width: 100%; /* Ensure full width */
+        padding: 20px;
+    }
+    
+    .menu-grid {
+        display: flex; /* Use flexbox */
+        flex-wrap: wrap; /* Allow wrapping of cards */
+        justify-content: space-between; /* Space out the cards */
+    }
+    
+    .menu-card {
+        flex: 0 0 calc(33.33% - 10px); /* Three cards per row with some spacing */
+        margin: 13px; /* Space between cards */
+        background-color: #f8f8f8; /* Card background color */
+        border: 1px solid #ddd; /* Card border */
+        border-radius: 8px; /* Rounded corners */
+        padding: 15px; /* Inner padding */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        text-align: center; /* Center align text */
+        box-sizing: border-box; /* Ensure padding and border are included in the width */
+        max-width: 30%; /* Ensure maximum width for each card */
+    }
+    
+    .day-header {
+        font-size: 1.2em; /* Adjusted day header style */
+        margin-bottom: 10px; /* Space below the header */
+    }
+    
+    .meal-section {
+        margin: 1px; /* Space between meal sections */
+    }
+    
+    .edit-button {
+        background-color: #007bff; 
+        color: white; 
+        border: none;
+        border-radius: 4px;
+        padding: 10px; 
+        cursor: pointer; 
+        width: 30%; /* Make the button full width */
+    }
+    
+    .edit-button:hover {
+        background-color: #0056b3; 
+    }
+    
+
+    .modal {
+        display: none;
+        position: fixed; 
+        z-index: 1000; 
+        left: 0;
+        top: 0;
+        width: 100%; 
+        height: 100%;
+        overflow: auto; 
+        background-color: rgba(0, 0, 0, 0.4); 
+    }
+
+    .modal-content {
+        background-color: 
+        margin: 15% auto; 
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .close-modal {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close-modal:hover,
+    .close-modal:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+</style>
+
+<body>
+    <div class="menu-container">
+        <h3 class="menu-header"><center>Weekly Menu</center></h3>
+        <br>
+        <div class="menu-grid">
+            {% for item in menu_items %}
+    <div class="menu-card">
+        <h1 class="day-header"><u><b>{{ item['day'] }}</b></u></h1>
+        <br>
+        <div class="meal-section">
+            <h6 class="meal-type">Breakfast</h6>
+            <p class="meal-items">{{ item['breakfast'] }}</p>
+            
+            <h6 class="meal-type">Lunch</h6>
+            <p class="meal-items">{{ item['lunch'] }}</p>
+            
+            <h6 class="meal-type">Snacks</h6>
+            <p class="meal-items">{{ item['snacks'] }}</p>
+            
+            <h6 class="meal-type">Dinner</h6>
+            <p class="meal-items">{{ item['dinner'] }}</p>
+            <br>
+        </div>
+                <button onclick="openEditModal({{ loop.index }})" class="edit-button">
+                    Edit Menu
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+            <h2 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 1rem;">Edit Menu</h2>
+
+            <form id="editMenuForm" class="modal-form">
+                <input type="hidden" id="dayId">
+                
+                <div class="form-group">
+                    <label class="form-label">Breakfast</label>
+                    <textarea class="form-input" name="breakfast" id="editBreakfast" rows="2"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Lunch</label>
+                    <textarea class="form-input" name="lunch" id="editLunch" rows="2"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Snacks</label>
+                    <textarea class="form-input" name="snacks" id="editSnacks" rows="2"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Dinner</label>
+                    <textarea class="form-input" name="dinner" id="editDinner" rows="2"></textarea>
+                </div>
+                
+                <div style="text-align: right; margin-top: 1rem;">
+                    <button type="submit" class="edit-button" style="width: auto;">Update Menu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Function to open the modal and populate it with the current menu data
+        function openEditModal(index) {
+            const menuItem = document.querySelectorAll('.menu-card')[index - 1]; // index - 1 because loop.index starts from 1
+
+            // Populate the modal with the current menu item data
+            document.getElementById('editBreakfast').value = menuItem.querySelectorAll('.meal-items')[0].textContent;
+            document.getElementById('editLunch').value = menuItem.querySelectorAll('.meal-items')[1].textContent;
+            document.getElementById('editSnacks').value = menuItem.querySelectorAll('.meal-items')[2].textContent;
+            document.getElementById('editDinner').value = menuItem.querySelectorAll('.meal-items')[3].textContent;
+
+            // Display the modal
+            document.getElementById('editModal').style.display = "block";
+        }
+
+        // Function to close the modal
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = "none";
+        }
+
+        // Close the modal when the user clicks anywhere outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('editMenuForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Implement your update logic here (e.g., AJAX request to update the menu in the database)
+            // After successful update, close the modal
+            closeEditModal();
+        });
+    </script>
+{% endblock %}
