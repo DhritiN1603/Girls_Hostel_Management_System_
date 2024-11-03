@@ -1,0 +1,59 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block page_title %}<h2>Dashboard Overview<h2>{% endblock %}
+
+{% block content %}
+<div class="cards-container">
+    <div class="card">
+        <div class="card-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="card-content">
+            <h5>Total Students</h5>
+            <div class="card-value">{{ total_students }}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-icon">
+            <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <div class="card-content">
+            <h5>Active Complaints</h5>
+            <div class="card-value">{{ active_complaints }}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-icon">
+            <i class="fas fa-bullhorn"></i>
+        </div>
+        <div class="card-content">
+            <h5>Feedback</h5>
+            <div class="card-value">{{ feedback }}</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-icon">
+            <i class="fas fa-bed"></i>
+        </div>
+        <div class="card-content">
+            <h5>Available Rooms</h5>
+            <div class="card-value">{{ available_rooms }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="recent-activities">
+    <h4>Recent Activities</h4>
+    {% for activity in recent_activities %}
+    <div class="activity-item">
+        <p>{{ activity.description }}</p>
+        <small>{{ activity.time_ago }}</small>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - Hostel Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    
+    <style>
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary-color: #4a90e2;
+            --sidebar-width: 250px;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: #2c3e50;
+            padding: 20px;
+            color: white;
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #ffffff3d;
+        }
+        
+        .nav-links {
+            margin-top: 30px;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .nav-link:hover {
+            background: #34495e;
+        }
+        
+        .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+        }
+        
+        /* Main content area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            background: #f5f6fa;
+        }
+        
+        /* Top bar styles */
+        .top-bar {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            background-color: #dc3545;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background-color: #c82333;
+            transform: translateY(-1px);
+        }
+        
+        .logout-btn i {
+            margin-right: 8px;
+        }
+        
+        /* Cards container */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .card-title {
+            color: #2c3e50;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        
+        .card-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .recent-activities {
+            margin: 0 20px 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .activities-header {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .activity-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        @media screen and (max-width: 768px) {
+            :root {
+                --sidebar-width: 70px;
+            }
+        
+            .sidebar-header h4,
+            .nav-link span {
+                display: none;
+            }
+        
+            .nav-link i {
+                margin-right: 0;
+            }
+        
+            .top-bar {
+                padding: 15px;
+            }
+        
+            .top-bar h1 {
+                font-size: 1.3em;
+            }
+        
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h4>Warden-Admin</h4>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('registered_students') }}" class="nav-link {% if request.endpoint == 'registered_students' %}active{% endif %}">
+                <i class="fas fa-users"></i>
+                <span>Registered Students</span>
+            </a>
+            <a href="{{ url_for('create_user') }}" class="nav-link {% if request.endpoint == 'create_user' %}active{% endif %}">
+                <i class="fas fa-user-plus"></i>
+                <span>Create New User</span>
+            </a>
+            <a href="{{ url_for('menu') }}" class="nav-link {% if request.endpoint == 'menu' %}active{% endif %}">
+                <i class="fas fa-utensils"></i>
+                <span>Menu Management</span>
+            </a>
+            <a href="{{ url_for('complaints') }}" class="nav-link {% if request.endpoint == 'complaints' %}active{% endif %}">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>Complaints</span>
+            </a>
+            <a href="{{ url_for('announcements') }}" class="nav-link {% if request.endpoint == 'announcements' %}active{% endif %}">
+                <i class="fas fa-bullhorn"></i>
+                <span>Announcements</span>
+            </a>
+        </div>
+
+    </div>
+    <div class="main-content">
+        <div class="top-bar">
+            <h3>{% block page_title %}{% endblock %}</h3>
+        </div>
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

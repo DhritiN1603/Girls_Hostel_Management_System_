@@ -67,21 +67,33 @@
 
                 <!-- Email input -->
                 <div class="form-outline mb-4">
+                    <label class="form-label">Username<red style="color:red"> * </red></label>
                   <input required type="text" name="username" id="username" placeholder="Enter Your Username" class="form-control" autocomplete="off"/>
-                  <label class="form-label">Username<red style="color:red">**</red></label>
+                  
                 </div>
 
                 <!-- Password input -->
                 <div class="form-outline mb-4">
+                    <label class="form-label">Password<red style="color:red"> * </red></label>
                   <input required type="password" minlength="8" name="password" id="psw" placeholder="Enter Your Password" class="form-control" autocomplete="off" />
-                  <label class="form-label">Password<red style="color:red">**</red></label>
+                  
                 </div>
-
+                <div class="form-outline mb-2">
+                    <label class="form-label" style="font-size: 1rem; display: block;">Login As <span style="color:red"> * </span></label>
+                  <select required name="role" id="role" class="form-control">
+                    <option value="" disabled selected>Select Your Role</option>
+                    <option value="1">Admin</option>
+                    <option value="2">Student</option>
+                    <option value="3">Security</option>
+                    <option value="4">Maintenance Staff</option>
+                  </select>
+                  
+                </div>
                 <div class="text-center"><button type="submit" class="btn btn-primary btn-block px-5 mb-3">SIGNIN</button></div>            
 
                 <!-- TO redirect to the signup page -->
                 <div class="text-center">
-                  <p>Don't have an account yet? <a href="{{ url_for('signup') }}">  Signup</a></p>
+                  <p>Don't have an account yet? <a href="{{ url_for('signup') }}">  Register </a></p>
 
                 </div>
               </form>          
