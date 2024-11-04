@@ -1,0 +1,56 @@
+-- Drop the existing complaints table
+DROP TABLE IF EXISTS complaint;
+
+-- Drop the existing visitor table
+DROP TABLE IF EXISTS visitor;
+
+-- Drop the existing logs table
+DROP TABLE IF EXISTS logs;
+
+
+-- Create a new complaints table with the specified structure
+CREATE TABLE complaint (
+    C_ID INT PRIMARY KEY AUTO_INCREMENT,
+    R_NO VARCHAR(3),
+    SRN VARCHAR(13),
+    Category ENUM('Electrical', 'Plumbing', 'Furniture', 'Other') NOT NULL,
+    Description VARCHAR(50),
+    Date_OF_SUBMISSION DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Status ENUM('Pending', 'Resolved') NOT NULL,
+    Unit_No ENUM('1', '2', '3') NOT NULL,
+    FOREIGN KEY (R_NO) REFERENCES room(R_No),
+    FOREIGN KEY (SRN) REFERENCES student(SRN)
+);
+
+
+-- Create the new visitor table with unit_no column
+CREATE TABLE visitor (
+    visitor_ID INT PRIMARY KEY AUTO_INCREMENT,
+    visitor_name VARCHAR(50),
+    gender ENUM('M', 'F'),
+    contact_no VARCHAR(10),
+    email VARCHAR(50),
+    city VARCHAR(50),
+    state VARCHAR(50),
+    visiting_SRN VARCHAR(13),
+    Relation ENUM('Parent/Guardian', 'Relative', 'Official', 'Other'),
+    unit_no ENUM('1', '2', '3'),
+    FOREIGN KEY (visiting_SRN) REFERENCES student(SRN)
+);
+
+
+
+-- Create the new logs table with unit_no column
+CREATE TABLE logs (
+    log_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Visitor_ID INT,
+    student_SRN VARCHAR(13),
+    entry_time DATETIME NOT NULL,
+    exit_time DATETIME DEFAULT NULL,
+    unit_no ENUM('1', '2', '3'),
+    FOREIGN KEY (Visitor_ID) REFERENCES visitor(visitor_ID),
+    FOREIGN KEY (student_SRN) REFERENCES student(SRN)
+);
+
+
+

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Complaints Management</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary-purple: #2c3e50;
+        --light-purple: #2c3e50;
+        --dark-purple: #2c3e50;
+        --sidebar-width: 250px;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f6f8;
+        min-height: 100vh;
+        display: flex;
+      }
+
+      /* Sidebar Styles */
+      .sidebar {
+        width: var(--sidebar-width);
+        background: var(--primary-purple);
+        padding: 20px;
+        color: white;
+        position: fixed;
+        height: 100vh;
+      }
+
+      .sidebar .profile {
+        text-align: center;
+        padding: 20px 0;
+        border-bottom: 1px solid var(--light-purple);
+      }
+
+      .profile-image {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: white;
+        margin: 0 auto 10px;
+      }
+
+      .nav-links {
+        margin-top: 30px;
+      }
+
+      .nav-links a {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s;
+        border-radius: 8px;
+        margin-bottom: 5px;
+      }
+
+      .nav-links a:hover {
+        background: var(--light-purple);
+      }
+
+      .nav-links a.active {
+        background: var(--dark-purple);
+      }
+
+      /* Main Content Styles */
+      .main-content {
+        flex: 1;
+        margin-left: var(--sidebar-width);
+        padding: 30px;
+      }
+
+      .card {
+        background-color: #fff;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+
+      .card-header {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #2c3e50;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f0f2f5;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 0.9rem;
+      }
+
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+
+      th {
+        background-color: #f8f9fa;
+        color: #2c3e50;
+        font-weight: 600;
+      }
+
+      tbody tr:hover {
+        background-color: #f8f9fa;
+      }
+
+      .status-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      .status-resolved {
+        background-color: #e1f7e1;
+        color: #2ecc71;
+      }
+
+      .status-pending {
+        background-color: #fef9e7;
+        color: #f1c40f;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 0.9em;
+        color: #2c3e50;
+        margin-bottom: 5px;
+        font-weight: 500;
+      }
+
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 0.9em;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        color: #2c3e50;
+      }
+
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #3498db;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 100px;
+      }
+
+      .btn {
+        display: inline-block;
+        width: 100%;
+        padding: 10px;
+        background-color: #2c3e50;
+        color: #fff;
+        font-size: 0.9em;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .btn:hover {
+        background-color: #34495e;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="profile">
+        <div class="profile-image"></div>
+        <h3>Student Name</h3>
+        <p>ID: STU2024001</p>
+      </div>
+      <div class="nav-links">
+        <a href="/student">Dashboard</a>
+        <a href="/student">Room Details</a>
+        <a href="/student/complaint" class="active">Submit Complaint</a>
+        <a href="/student">Mess Schedule</a>
+        <a href="logout.html">Logout</a>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Recent Complaints Card -->
+      <div class="card">
+        <div class="card-header">Recent Complaints</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Complaint ID</th>
+              <th>Date of Submission</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Example of dynamically generated rows -->
+            <!-- Replace the following rows with data fetched from the database -->
+            <tr>
+              <td>101</td>
+              <td>2024-02-01</td>
+              <td>Plumbing</td>
+              <td>Water Leakage in Bathroom</td>
+              <td>
+                <span class="status-badge status-resolved">Resolved</span>
+              </td>
+            </tr>
+            <tr>
+              <td>102</td>
+              <td>2024-02-15</td>
+              <td>Electrical</td>
+              <td>Fan Not Working</td>
+              <td>
+                <span class="status-badge status-pending">Pending</span>
+              </td>
+            </tr>
+            <!-- Add dynamic rows here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Submit New Complaint Card -->
+      <div class="card">
+        <div class="card-header">Submit New Complaint</div>
+        <form id="complaint-form">
+          <div class="form-group">
+            <label for="complaint-type">Complaint Type</label>
+            <select id="complaint-type" name="Category" required>
+              <option value="" disabled selected>Select Type</option>
+              <option value="Electrical">Electrical</option>
+              <option value="Plumbing">Plumbing</option>
+              <option value="Furniture">Furniture</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea
+              id="description"
+              name="Description"
+              <!--
+              Added
+              name
+              attribute
+              for
+              form
+              submission
+              --
+            >
+        placeholder="Please describe your issue in detail..."
+        required
+      ></textarea
+            >
+          </div>
+          <div class="form-group">
+            <label for="unit-no">Unit No</label>
+            <select id="unit-no" name="Unit_No" required>
+              <option value="" disabled selected>Select Unit</option>
+              <option value="1">Unit 1</option>
+              <option value="2">Unit 2</option>
+              <option value="3">Unit 3</option>
+            </select>
+          </div>
+          <button type="submit" class="btn">Submit Complaint</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
