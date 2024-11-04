@@ -29,8 +29,6 @@
                     <td>
                         {% if complaint.status == 'Pending' %}
                             <span class="badge bg-warning text-dark">Pending</span>
-                        {% elif complaint.status == 'In Progress' %}
-                            <span class="badge bg-info text-white">In Progress</span>
                         {% elif complaint.status == 'Resolved' %}
                             <span class="badge bg-success">Resolved</span>
                         {% else %}

@@ -2,7 +2,7 @@
 
 {% block title %}Dashboard{% endblock %}
 
-{% block page_title %}<h2>Dashboard Overview<h2>{% endblock %}
+{% block page_title %}<h2>Dashboard <h2>{% endblock %}
 
 {% block content %}
 <div class="cards-container">
@@ -54,38 +54,14 @@
             <h3 class="announcement-title">{{ announcement['title'] }}</h3>
             <p class="announcement-description">{{ announcement['description'] }}</p>
             <p class="announcement-date">Posted on: {{ announcement['date_posted'] }}</p>
-            <!--<form method="POST"  style="display:inline;">
-                <button type="submit" class="delete-button" onclick="return confirm('Are you sure you want to delete this announcement?')">Delete</button>
-            </form> -->
         </div>
         {% endfor %}
+       
     </div>
 </div>
 
 <style>
-       
-    .delete-button {
-        background-color: #e53e3e;
-        color: #ffffff;
-        align_item:right;
-        font-weight: 600;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    
-    .delete-button:hover {
-        background-color: #c53030;
-    }
-    .delete-button-container {
-        display: flex;
-        justify-content: flex-end;
-    }
-    .delete-button:focus {
-        outline: none;
-    }
+
     .container {
         max-width: 1150px;
         margin: 0 auto;

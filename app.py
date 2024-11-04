@@ -1,17 +1,29 @@
-from flask import Flask,redirect , url_for,render_template, request , session
+from flask import Flask, redirect, url_for, render_template, request, session, flash
 from sql_connector import get_connection
 import pymysql
 
 app = Flask(__name__)
-app.secret_key="dbms_ghms"
+app.secret_key = "dbms_ghms"
 connection = get_connection()
-@app.route("/",methods=["POST","GET"])
+
+# Landing page route
+@app.route("/", methods=["POST", "GET"])
 def landing():
-    
     return render_template("landing.html")
 
-@app.route("/login",methods=["POST","GET"])
+# Login route with session management
+@app.route("/login", methods=["POST", "GET"])
 def login():
+    if 'Username' in session:
+        if session['Role'] == 'Admin':
+            return redirect(url_for('admin_dashboard'))
+        elif session['Role'] == 'Student':
+            return redirect(url_for('student_dashboard'))
+        elif session['Role'] == 'Security':
+            return redirect(url_for('security_dashboard'))
+        elif session['Role'] == 'Maintenance':
+            return redirect(url_for('maintenance_dashboard'))
+    
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
@@ -21,140 +33,197 @@ def login():
             try:
                 with connection.cursor() as my_cursor:
                     my_cursor.execute(
-                        "SELECT role FROM login_cred WHERE username = %s AND password = %s",
+                        "SELECT * FROM login_cred WHERE Username = %s AND Password = %s",
                         (username, password)
                     )
                     result = my_cursor.fetchone()
 
                     if result:
-                        if result.get('role') == 'Admin' and role=='1': 
-                            return redirect(url_for('admin_dashboard')) 
-                        elif result.get('role')== 'Student' and role=='2':
-                            return redirect(url_for('admin_dashboard'))
-                        elif result.get('role')== 'Security' and role=='3':
-                            return redirect(url_for('admin_dashboard')) 
-                        elif result.get('role')== 'Maintenance' and role=='4':
-                            return redirect(url_for('admin_dashboard'))
-                        else:
-                            print("You do not have the required permissions to access this page.")
-                    else:
-                        print("Invalid username or password. Please try again.")
+                        selected_role = None
+                        if role == '1' and result['Role'] == 'Admin':
+                            selected_role = 'Admin'
+                        elif role == '2' and result['Role'] == 'Student':
+                            selected_role = 'Student'
+                        elif role == '3' and result['Role'] == 'Security':
+                            selected_role = 'Security'
+                        elif role == '4' and result['Role'] == 'Maintenance':
+                            selected_role = 'Maintenance'
 
+                        if selected_role:
+                            session['Username'] = result['Username']
+                            session['Role'] = result['Role']
+                            session['FName'] = result['FName']
+                            session['Unit'] = result['Unit']
+
+                            if selected_role == 'Admin':
+                                return redirect(url_for('admin_dashboard'))
+                            elif selected_role == 'Student':
+                                return redirect(url_for('student_dashboard'))
+                            elif selected_role == 'Security':
+                                return redirect(url_for('security_dashboard'))
+                            elif selected_role == 'Maintenance':
+                                return redirect(url_for('maintenance_dashboard'))
+                        else:
+                            flash("Invalid role selected for this user", "error")
+                    else:
+                        flash("Invalid username or password", "error")
+
+            except Exception as e:
+                print(f"Login error: {str(e)}")
+                flash("An error occurred during login", "error")
             finally:
                 my_cursor.close()
         else:
-            print("Failed to connect to the database.")
+            flash("Database connection failed", "error")
+    
     return render_template("login.html")
 
-@app.route("/signup",methods=["POST","GET"])
+# Signup route
+@app.route("/signup", methods=["POST", "GET"])
 def signup():
     if request.method == "POST":
-        # Get form data
         full_name = request.form.get("fname")
         srn = request.form.get("srn")
         semester = request.form.get("sem")
         unit = request.form.get("unit")
 
-        # Establish a database connection again , incase directly signup page instead of login
-        connection= get_connection()
         if connection:
             try:
                 with connection.cursor() as my_cursor:
-                    # Insert data into the `registered` table in mysql
                     sql_query = """
                     INSERT INTO registered (fname, srn, sem, unit) 
                     VALUES (%s, %s, %s, %s)
                     """
                     my_cursor.execute(sql_query, (full_name, srn, semester, unit))
-                    connection.commit()  # Commiting so that it can be inserted into the table. Important*
-
-                    print("Registration successful. You can now log in once room alloted.")
+                    connection.commit()
+                    flash("Registration successful. You can now log in once room alloted.", "success")
                     return redirect(url_for('login'))
             except Exception as e:
-                print("An error occurred during signup. Please try again.")
-                print("Error:", e)
+                flash(f"An error occurred during signup: {str(e)}", "error")
             finally:
                 my_cursor.close()
         else:
-            print("Failed to connect to the database.")
+            flash("Failed to connect to the database", "error")
 
     return render_template("signup.html")
 
-#all the required routes for admin ( WARDEN )
-#---------------------------------------------
-
-@app.route("/admin/home",methods=["POST","GET"])
+# Admin Routes
+@app.route("/admin/home", methods=["POST", "GET"])
 def admin_dashboard():
+    if 'Username' not in session:
+        flash('Please login first', 'error')
+        return redirect(url_for('login'))
+    
+    if session['Role'] != 'Admin':
+        flash('You do not have permission to access this page', 'error')
+        return redirect(url_for('login'))
+    
     try:
-        # Fetch the latest 5 announcements
         with connection.cursor() as cursor:
             sql = "SELECT title, description, date_posted FROM announcements ORDER BY date_posted DESC LIMIT 5"
             cursor.execute(sql)
             announcements = cursor.fetchall()
-
     except Exception as e:
-        print(f"An error occurred while fetching announcements: {e}", "danger")
+        flash(f"Error fetching announcements: {str(e)}", "error")
         announcements = []
-    cursor.close()
-    return render_template("admin/admin_home.html", announcements=announcements)
+    
+    return render_template("admin/admin_home.html", 
+                         announcements=announcements, 
+                         username=session.get('FName'))
 
-@app.route("/admin/announcements",methods=["POST","GET"])
+@app.route("/admin/announcements", methods=["POST", "GET"])
 def announcements():
+    if 'Username' not in session or session['Role'] != 'Admin':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('login'))
+
     if request.method == "POST":
         title = request.form.get("title")
         description = request.form.get("description")
-        date_posted = request.form.get("date")  # Assuming date is in 'YYYY-MM-DD' format
+        date_posted = request.form.get("date")
 
         if title and description and date_posted:
             try:
-                # Using existing connection
                 with connection.cursor() as cursor:
-                    # Insert data into the announcements table
                     sql = "INSERT INTO announcements (title, description, date_posted) VALUES (%s, %s, %s)"
                     cursor.execute(sql, (title, description, date_posted))
                     connection.commit()
-                    print("Announcement added successfully!", "success")
+                    flash("Announcement added successfully!", "success")
             except Exception as e:
-                print(f"An error occurred: {e}", "danger")
-            cursor.close()
-    return render_template("admin/announcements.html")
+                flash(f"Error: {str(e)}", "error")
 
-@app.route("/admin/registered",methods=["POST","GET"])
+    return render_template("admin/announcements.html", username=session.get('FName'))
+
+@app.route("/admin/registered", methods=["POST", "GET"])
 def registered_students():
-    return render_template("admin/registered.html")
+    if 'Username' not in session or session['Role'] != 'Admin':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('login'))
+    return render_template("admin/registered.html", username=session.get('FName'))
 
-@app.route("/admin/complaints",methods=["POST","GET"])
+@app.route("/admin/complaints", methods=["POST", "GET"])
 def complaints():
-    return render_template("admin/complaints.html")
+    if 'Username' not in session or session['Role'] != 'Admin':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('login'))
+    return render_template("admin/complaints.html", username=session.get('FName'))
 
-@app.route("/admin/create_user",methods=["POST","GET"])
+@app.route("/admin/create_user", methods=["POST", "GET"])
 def create_user():
-    return render_template("admin/create_user.html")
+    if 'Username' not in session or session['Role'] != 'Admin':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('login'))
+    return render_template("admin/create_user.html", username=session.get('FName'))
 
-@app.route("/admin/menu",methods=["POST","GET"])
+@app.route("/admin/menu", methods=["POST", "GET"])
 def menu():
+    if 'Username' not in session or session['Role'] != 'Admin':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('login'))
+
     try:
         with connection.cursor() as cursor:
-            sql="SELECT day, breakfast, lunch, snacks, dinner FROM menu ORDER By id"
+            sql = "SELECT day, breakfast, lunch, snacks, dinner FROM menu ORDER By id"
             cursor.execute(sql)
-        
             menu_items = cursor.fetchall()
-            print(menu_items)
-            return render_template('admin/menu.html', menu_items=menu_items)
-        cursor.close()
-    except pymysql.MySQLError as e:
-        return f"An error occurred: {e}"
-    
+            return render_template('admin/menu.html', 
+                                menu_items=menu_items, 
+                                username=session.get('FName'))
+    except pymysql.Error as e:
+        flash(f"An error occurred: {str(e)}", "error")
+        return redirect(url_for('admin_dashboard'))
 
+# Student dashboard (add your student routes here)
+@app.route("/student/dashboard")
+def student_dashboard():
+    if 'Username' not in session or session['Role'] != 'Student':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('login'))
+    return render_template("student/dashboard.html", username=session.get('FName'))
 
-#------------------------X---------------------X---------------------
+# Security dashboard (add your security routes here)
+@app.route("/security/dashboard")
+def security_dashboard():
+    if 'Username' not in session or session['Role'] != 'Security':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('login'))
+    return render_template("security/dashboard.html", username=session.get('FName'))
 
+# Maintenance dashboard (add your maintenance routes here)
+@app.route("/maintenance/dashboard")
+def maintenance_dashboard():
+    if 'Username' not in session or session['Role'] != 'Maintenance':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('login'))
+    return render_template("maintenance/dashboard.html", username=session.get('FName'))
 
-#general logout for everyone 
-@app.route("/logout",methods=["POST","GET"])
+# Logout route
+@app.route("/logout")
 def logout():
-    return render_template("landing.html")
+    if 'Username' in session:
+        session.clear()
+        flash("Successfully logged out", "success")
+    return redirect(url_for('landing'))
 
-if __name__== "__main__":
+if __name__ == "__main__":
     app.run(debug=True)
-

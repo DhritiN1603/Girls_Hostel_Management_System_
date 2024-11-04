@@ -1,5 +1,6 @@
 <!-- templates/announcements.html -->
 {% extends "admin/admin_base.html" %}
+{%block page_title%} Create New Announcement{%endblock%}
 {% block content %}
 <style>
     /* Main Container Styles */
@@ -85,7 +86,6 @@
         margin-top: 2rem;
     }
     
-    /* Submit Button Styles */
     .submit-button {
         background-color: #4299e1;
         color: #ffffff;
@@ -128,15 +128,10 @@
         .container {
             padding: 1rem;
         }
-        
+
         .announcement-card {
             padding: 1.5rem;
         }
-        
-        .announcement-header {
-            font-size: 1.5rem;
-        }
-        
         .submit-button {
             width: 100%;
         }
@@ -144,7 +139,6 @@
 </style>
 <div class="container">
     <div class="announcement-card">
-        <h2 class="announcement-header">Create New Announcement</h2>
         
         <form method="POST" action="{{ url_for('announcements') }}">
             <!-- Title Field -->

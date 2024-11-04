@@ -8,7 +8,42 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     
     <style>
+        .logout-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #e53e3e;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
         
+        .logout-link:hover {
+            color: #c53030;
+        }
+        
+        .logout-link i {
+            font-size: 1rem;
+        }
+        .user-profile {
+            position: absolute;
+            top: 1rem;
+            right: 2rem;
+            text-align: right;
+        }
+        
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.5rem;
+        }
+        
+        .username {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a365d;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -231,8 +266,17 @@
         </div>
 
     </div>
+
     <div class="main-content">
         <div class="top-bar">
+            <div class="user-profile">
+                <div class="profile-info">
+                    <span class="username">{{ username }}</span>
+                    <a href="{{ url_for('logout') }}" class="logout-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
             <h3>{% block page_title %}{% endblock %}</h3>
         </div>
         {% block content %}{% endblock %}

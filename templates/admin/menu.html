@@ -1,7 +1,7 @@
 {% extends "admin/admin_base.html" %}
 
 {% block title %}Weekly Menu{% endblock %}
-
+{% block page_title %}<h2>Weekly Menu<h2>{% endblock %}
 
 {% block content %}
 
@@ -118,8 +118,6 @@
 
 <body>
     <div class="menu-container">
-        <h3 class="menu-header"><center>Weekly Menu</center></h3>
-        <br>
         <div class="menu-grid">
             {% for item in menu_items %}
     <div class="menu-card">
