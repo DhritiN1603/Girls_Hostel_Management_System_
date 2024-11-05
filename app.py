@@ -14,22 +14,17 @@ def student():
     # Get the current day of the week
     current_day = datetime.now().strftime('%A')  # e.g., 'Monday'
     
-    # Connect to the database and fetch the menu for the current day
+    # Connect to the database
     connection = get_connection()
     cursor = connection.cursor()
-
-    query = "SELECT * FROM menu WHERE day = %s"
-    cursor.execute(query, (current_day,))
-    result = cursor.fetchone()  # Fetch a single record
-
-    cursor.close()
-    connection.close()
-
-    # Debug: print the result to see what it contains
-    print("Query result:", result)
-
+    
+    # Fetch the menu for the current day
+    query_menu = "SELECT * FROM menu WHERE day = %s"
+    cursor.execute(query_menu, (current_day,))
+    result = cursor.fetchone()  # Fetch a single record for the menu
+    
+    # Check if a menu is available for the current day and create a dictionary
     if result:
-        # Manually create a dictionary from the result tuple
         menu_item = {
             'id': result['id'],
             'day': result['day'],
@@ -47,18 +42,65 @@ def student():
             'snacks': 'No Menu Available',
             'dinner': 'No Menu Available'
         }
-    cur = connection.cursor()
-    cur.execute("SELECT title, description, date_posted FROM announcements ORDER BY date_posted DESC")
-    announcements = cur.fetchall()
-    # Close the cursor
-    cur.close()
 
-    return render_template('student.html', menu=menu_item)
+    # Fetch the latest announcements from the announcements table
+    query_announcements = "SELECT title, description, date_posted FROM announcements ORDER BY date_posted DESC"
+    cursor.execute(query_announcements)
+    announcements = cursor.fetchall()
+    
+    cursor.close()
+    connection.close()
+
+    # Pass both the menu and announcements data to the template
+    return render_template('student.html', menu=menu_item, announcements=announcements)
+
+@app.route('/submit-complaint', methods=['POST'])
+def submit_complaint():
+    category = request.form['Category']
+    description = request.form['Description']
+    unit_no = request.form['Unit_No']
+    room_no = "R001"  # This should be dynamically fetched based on the logged-in user if applicable
+    srn = "SRN001"    # This should also be dynamically fetched if applicable
+    status = "Pending"
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Insert the complaint into the database
+    query = """
+    INSERT INTO complaint (R_NO, SRN, Category, Description, Date_OF_SUBMISSION, Status, Unit_No)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """
+    cursor.execute(query, (room_no, srn, category, description, datetime.now(), status, unit_no))
+    connection.commit()  # Commit the transaction
+
+    cursor.close()
+    connection.close()
+
+    # Redirect to the complaints page after submission
+    return redirect(url_for('student/complaint')) 
 
 # Route for Student complaint page
 @app.route('/student/complaint')
 def student_complaint():
-    return render_template('complaint.html')
+    connection = get_connection()
+    cursor = connection.cursor()
+    
+    cursor.execute('SELECT C_ID, R_NO, Category, Description, Date_OF_SUBMISSION, Status FROM complaint')
+    complaints = cursor.fetchall()
+    
+    cursor.close()
+    connection.close()
+
+    # Check if there are any complaints
+    if not complaints:  # If the complaints list is empty
+        message = "You have not filed any complaints yet."
+    else:
+        message = None  # No message if there are complaints
+    
+    return render_template('complaint.html', complaints=complaints, message=message)
+
+    
 
 # Route for Student update password page
 @app.route('/student/update-password')

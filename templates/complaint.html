@@ -21,7 +21,6 @@
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         background-color: #f4f6f8;
-        min-height: 100vh;
         display: flex;
       }
 
@@ -80,11 +79,11 @@
       }
 
       .card {
-        background-color: #fff;
-        padding: 20px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background-color: white;
         border-radius: 8px;
+        padding: 20px;
         margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
       .card-header {
@@ -186,6 +185,21 @@
       .btn:hover {
         background-color: #34495e;
       }
+
+      .status {
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 14px;
+      }
+
+      .pending {
+        background-color: #ffeeba;
+        color: #856404;
+      }
+
+      .resolved {
+        background-color: #c3e6cb;
+        col
     </style>
   </head>
   <body>
@@ -199,49 +213,44 @@
       <div class="nav-links">
         <a href="/student">Dashboard</a>
         <a href="/student">Room Details</a>
-        <a href="/student/complaint" class="active">Submit Complaint</a>
-        <a href="/student">Mess Schedule</a>
+        <a href="/student/update-password" class="active">Update Password</a>
+        <a href="/student#menu">Mess Menu</a>
+        <a href="/student#announcements">Announcements</a>
         <a href="logout.html">Logout</a>
       </div>
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
-      <!-- Recent Complaints Card -->
       <div class="card">
-        <div class="card-header">Recent Complaints</div>
+        <h2>Recent Complaints</h2>
         <table>
           <thead>
             <tr>
               <th>Complaint ID</th>
-              <th>Date of Submission</th>
-              <th>Type</th>
+              <th>Room</th>
+              <th>Category</th>
               <th>Description</th>
+              <th>Date of Submission</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            <!-- Example of dynamically generated rows -->
-            <!-- Replace the following rows with data fetched from the database -->
-            <tr>
-              <td>101</td>
-              <td>2024-02-01</td>
-              <td>Plumbing</td>
-              <td>Water Leakage in Bathroom</td>
+            {% for complaint in complaints %}
+            <tr id="complaint-{{ complaint.C_ID }}">
+              <td>#{{ complaint.C_ID }}</td>
+              <td>{{ complaint.R_NO }}</td>
+              <td>{{ complaint.Category }}</td>
+              <td>{{ complaint.Description }}</td>
+              <td>{{ complaint.Date_OF_SUBMISSION.strftime('%Y-%m-%d') }}</td>
               <td>
-                <span class="status-badge status-resolved">Resolved</span>
+                <span class="status {{ complaint.Status|lower }}"
+                  >{{ complaint.Status }}</span
+                >
               </td>
+              <td></td>
             </tr>
-            <tr>
-              <td>102</td>
-              <td>2024-02-15</td>
-              <td>Electrical</td>
-              <td>Fan Not Working</td>
-              <td>
-                <span class="status-badge status-pending">Pending</span>
-              </td>
-            </tr>
-            <!-- Add dynamic rows here -->
+            {% endfor %}
           </tbody>
         </table>
       </div>
@@ -249,7 +258,7 @@
       <!-- Submit New Complaint Card -->
       <div class="card">
         <div class="card-header">Submit New Complaint</div>
-        <form id="complaint-form">
+        <form id="complaint-form" method="POST" action="/submit-complaint">
           <div class="form-group">
             <label for="complaint-type">Complaint Type</label>
             <select id="complaint-type" name="Category" required>
@@ -265,19 +274,9 @@
             <textarea
               id="description"
               name="Description"
-              <!--
-              Added
-              name
-              attribute
-              for
-              form
-              submission
-              --
-            >
-        placeholder="Please describe your issue in detail..."
-        required
-      ></textarea
-            >
+              placeholder="Please describe your issue in detail..."
+              required
+            ></textarea>
           </div>
           <div class="form-group">
             <label for="unit-no">Unit No</label>
