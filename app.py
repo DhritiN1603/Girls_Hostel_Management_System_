@@ -5,6 +5,14 @@ import pymysql
 app = Flask(__name__)
 app.secret_key = "dbms_ghms"
 connection = get_connection()
+session_cleared = False
+
+@app.before_request
+def clear_session_once():
+    global session_cleared
+    if not session_cleared:
+        session.clear()
+        session_cleared = True
 
 # Landing page route
 @app.route("/", methods=["POST", "GET"])
@@ -84,17 +92,17 @@ def signup():
     if request.method == "POST":
         full_name = request.form.get("fname")
         srn = request.form.get("srn")
-        semester = request.form.get("sem")
+        year = request.form.get("year")
         unit = request.form.get("unit")
 
         if connection:
             try:
                 with connection.cursor() as my_cursor:
                     sql_query = """
-                    INSERT INTO registered (fname, srn, sem, unit) 
+                    INSERT INTO registered (fname, srn, year, unit) 
                     VALUES (%s, %s, %s, %s)
                     """
-                    my_cursor.execute(sql_query, (full_name, srn, semester, unit))
+                    my_cursor.execute(sql_query, (full_name, srn, year, unit))
                     connection.commit()
                     flash("Registration successful. You can now log in once room alloted.", "success")
                     return redirect(url_for('login'))
@@ -159,7 +167,18 @@ def registered_students():
     if 'Username' not in session or session['Role'] != 'Admin':
         flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
-    return render_template("admin/registered.html", username=session.get('FName'))
+    registered_students = []
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT fname, srn, year, unit FROM registered"
+            cursor.execute(sql)
+            registered_students = cursor.fetchall()
+    except Exception as e:
+        flash(f"Error fetching registered students: {str(e)}", "error")
+
+    return render_template("admin/registered.html", 
+                           registered_students=registered_students, 
+                           username=session.get('FName'))
 
 @app.route("/admin/complaints", methods=["POST", "GET"])
 def complaints():
