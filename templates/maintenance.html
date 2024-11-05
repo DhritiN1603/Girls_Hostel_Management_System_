@@ -77,12 +77,7 @@
         color: #856404;
       }
 
-      .in-progress {
-        background-color: #b8daff;
-        color: #004085;
-      }
-
-      .completed {
+      .resolved {
         background-color: #c3e6cb;
         color: #155724;
       }
@@ -130,180 +125,84 @@
         border-radius: 4px;
       }
 
-      .status.pending {
-        color: orange;
-      }
-      .status.resolved {
-        color: green;
+      /* Message Box Styles */
+      #messageBox {
+        display: none; /* Hidden by default */
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+        background-color: #d4edda; /* Light green background */
+        color: #155724; /* Dark green text */
+        border: 1px solid #c3e6cb; /* Darker border */
       }
     </style>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- Include jQuery -->
-  </head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   </head>
   <body>
     <nav>
-      <div class="nav-title">
-        Security Portal - Girls Hostel Management System
-      </div>
-      <div class="security-info">
-        <span class="security-name">Guard: John Smith</span>
-        <button class="logout-btn">Logout</button>
-      </div>
+      <h1>Maintenance Staff Portal - Girls Hostel Management System</h1>
     </nav>
-  
+
     <div class="container">
-      <!-- New Visitor Entry Form -->
+      <div id="messageBox"></div>
+      <!-- Message box for notifications -->
+
       <div class="card">
-        <h2>New Visitor Entry</h2>
-        <form id="visitorForm" action="{{ url_for('add_visitor') }}" method="POST">
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Visitor Name *</label>
-              <input type="text" name="visitor_name" required />
-            </div>
-  
-            <div class="form-group">
-              <label>Gender *</label>
-              <select name="gender" required>
-                <option value="">Select Gender</option>
-                <option value="M">Male</option>
-                <option value="F">Female</option>
-              </select>
-            </div>
-  
-            <div class="form-group">
-              <label>Contact Number *</label>
-              <input
-                type="tel"
-                name="contact_no"
-                pattern="[0-9]{10}"
-                maxlength="10"
-                required
-              />
-            </div>
-  
-            <div class="form-group">
-              <label>Email</label>
-              <input type="email" name="email" />
-            </div>
-  
-            <div class="form-group">
-              <label>City *</label>
-              <input type="text" name="city" required />
-            </div>
-  
-            <div class="form-group">
-              <label>State *</label>
-              <input type="text" name="state" required />
-            </div>
-  
-            <div class="form-group">
-              <label>Student SRN *</label>
-              <input
-                type="text"
-                name="visiting_SRN"
-                pattern="[A-Za-z0-9]{13}"
-                maxlength="13"
-                required
-              />
-            </div>
-  
-            <div class="form-group">
-              <label>Relation *</label>
-              <select name="Relation" required>
-                <option value="">Select Relation</option>
-                <option value="Parent/Guardian">Parent/Guardian</option>
-                <option value="Relative">Relative</option>
-                <option value="Official">Official</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-  
-            <div class="form-group">
-              <label>Unit Number *</label>
-              <select name="unit_no" required>
-                <option value="">Select Unit</option>
-                <option value="1">Unit 1</option>
-                <option value="2">Unit 2</option>
-                <option value="3">Unit 3</option>
-              </select>
-            </div>
-          </div>
-  
-          <div class="button-group">
-            <button type="submit" class="button">Record Entry</button>
-            <button
-              type="reset"
-              class="button"
-              style="background-color: #95a5a6"
-            >
-              Clear Form
-            </button>
-          </div>
-        </form>
-      </div>
-  
-      <!-- Current Visitors -->
-      <div class="card">
-        <h2>Current Visitors</h2>
+        <h2>Complaints Dashboard</h2>
+
         <table>
-          <thead>
-            <tr>
-              <th>Visitor ID</th>
-              <th>Name</th>
-              <th>Room</th>
-              <th>Visiting</th>
-              <th>Entry Time</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for visitor in current_visitors %}
-            <tr>
-              <td>{{ visitor.log_ID }}</td>
-              <td>{{ visitor.visitor_name }}</td>
-              <td>{{ visitor.unit_no }}</td>
-              <td>{{ visitor.SRN }}</td>
-              <td>{{ visitor.entry_time.strftime('%I:%M %p') }}</td>
-              <td>
-                <form action="{{ url_for('record_exit', log_id=visitor.log_ID) }}" method="POST">
-                  <button class="action-btn exit-btn" type="submit">Record Exit</button>
-                </form>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-  
-      <!-- Visitor History -->
-      <div class="card">
-        <h2>Visitor History</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Visitor ID</th>
-              <th>Name</th>
-              <th>Room</th>
-              <th>Visited</th>
-              <th>Entry Time</th>
-              <th>Exit Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for visitor in visitor_history %}
-            <tr>
-              <td>{{ visitor.log_ID }}</td>
-              <td>{{ visitor.visitor_name }}</td>
-              <td>{{ visitor.unit_no }}</td>
-              <td>{{ visitor.SRN }}</td>
-              <td>{{ visitor.entry_time.strftime('%I:%M %p') }}</td>
-              <td>{{ visitor.exit_time.strftime('%I:%M %p') }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
+          <tr>
+            <th>Complaint ID</th>
+            <th>Room</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+          {% for complaint in complaints %}
+          <tr id="complaint-{{ complaint.C_ID }}">
+            <td>#{{ complaint.C_ID }}</td>
+            <td>{{ complaint.R_NO }}</td>
+            <td>{{ complaint.Category }}</td>
+            <td>{{ complaint.Description }}</td>
+            <td>{{ complaint.Date_OF_SUBMISSION.strftime('%Y-%m-%d') }}</td>
+            <td>
+              <span class="status {{ complaint.Status|lower }}"
+                >{{ complaint.Status }}</span
+              >
+            </td>
+            <td>
+              <form
+                action="{{ url_for('update_complaint_status', c_id=complaint['C_ID']) }}"
+                method="POST"
+                style="display: inline"
+              >
+                <button
+                  type="submit"
+                  class="button"
+                  onclick="showMessage('Complaint already resolved!')"
+                >
+                  Update
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
         </table>
       </div>
     </div>
+
+    <script>
+      function showMessage(message) {
+        var messageBox = $("#messageBox");
+        messageBox.text(message).show(); // Set the message and show the box
+
+        // Hide the message box after 3 seconds
+        setTimeout(function () {
+          messageBox.hide();
+        }, 100000);
+      }
+    </script>
   </body>
 </html>

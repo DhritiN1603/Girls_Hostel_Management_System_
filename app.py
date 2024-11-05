@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request, jsonify,redirect,url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 from db_connection import get_connection
+from datetime import datetime  # Import datetime module
 
 app = Flask(__name__)
 
@@ -8,10 +9,51 @@ app = Flask(__name__)
 def home():
     return "Hello"  # Create an index.html if needed
 
-# Route for Student page
 @app.route('/student')
 def student():
-    return render_template('student.html')
+    # Get the current day of the week
+    current_day = datetime.now().strftime('%A')  # e.g., 'Monday'
+    
+    # Connect to the database and fetch the menu for the current day
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    query = "SELECT * FROM menu WHERE day = %s"
+    cursor.execute(query, (current_day,))
+    result = cursor.fetchone()  # Fetch a single record
+
+    cursor.close()
+    connection.close()
+
+    # Debug: print the result to see what it contains
+    print("Query result:", result)
+
+    if result:
+        # Manually create a dictionary from the result tuple
+        menu_item = {
+            'id': result['id'],
+            'day': result['day'],
+            'breakfast': result['breakfast'],
+            'lunch': result['lunch'],
+            'snacks': result['snacks'],
+            'dinner': result['dinner']
+        }
+    else:
+        # Handle the case where no menu is found for the current day
+        menu_item = {
+            'day': current_day,
+            'breakfast': 'No Menu Available',
+            'lunch': 'No Menu Available',
+            'snacks': 'No Menu Available',
+            'dinner': 'No Menu Available'
+        }
+    cur = connection.cursor()
+    cur.execute("SELECT title, description, date_posted FROM announcements ORDER BY date_posted DESC")
+    announcements = cur.fetchall()
+    # Close the cursor
+    cur.close()
+
+    return render_template('student.html', menu=menu_item)
 
 # Route for Student complaint page
 @app.route('/student/complaint')
@@ -23,13 +65,7 @@ def student_complaint():
 def student_update_password():
     return render_template('update_password.html')
 
-# Route for Security page
-@app.route('/security')
-def security():
-    return render_template('security.html')
-
 # Route for Maintenance Staff page
-@app.route('/maintenance')
 @app.route('/maintenance')
 def maintenance():
     connection = get_connection()
@@ -62,77 +98,102 @@ def update_complaint_status(c_id):
     # Redirect back to the maintenance page to refresh the data
     return redirect(url_for('maintenance'))
 
-
-
-@app.route('/add_visitor', methods=['POST'])
-def add_visitor():
-    if request.method == 'POST':
-        visitor_name = request.form['visitor_name']
-        gender = request.form['gender']
-        contact_no = request.form['contact_no']
-        email = request.form['email']
-        city = request.form['city']
-        state = request.form['state']
-        visiting_srn = request.form['visiting_srn']
-        relation = request.form['relation']
-        unit_no = request.form['unit_no']
-
-        db = db_connection()
-        cursor = db.cursor()
-
-        # Insert into visitor table
-        cursor.execute(
-            "INSERT INTO visitor (visitor_name, gender, contact_no, email, city, state, visiting_SRN, Relation, unit_no) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-            (visitor_name, gender, contact_no, email, city, state, visiting_srn, relation, unit_no)
-        )
-        visitor_id = cursor.lastrowid
-
-        # Insert into logs table
-        cursor.execute(
-            "INSERT INTO logs (Visitor_ID, student_SRN, entry_time, exit_time, unit_no) "
-            "VALUES (%s, %s, %s, NULL, %s)",
-            (visitor_id, visiting_srn, datetime.now(), unit_no)
-        )
-
-        db.commit()
-        cursor.close()
-        db.close()
-        return redirect("/security")
-
-@app.route('/current_visitors')
-def current_visitors():
-    db = db_connection()
-    cursor = db.cursor()
-
+# Route for Security page
+@app.route('/security')
+def security():
+    connection = get_connection()
+    cursor = connection.cursor()
+    
+    # Fetch currently visiting visitors (exit time is NULL)
     cursor.execute("""
-        SELECT v.visitor_ID, v.visitor_name, l.entry_time, s.student_name, l.unit_no
-        FROM logs l
-        JOIN visitor v ON l.Visitor_ID = v.visitor_ID
-        JOIN students s ON l.student_SRN = s.student_SRN
-        WHERE l.exit_time IS NULL
+        SELECT logs.log_ID, visitor.visitor_name, visitor.contact_no, visitor.Relation, 
+               student.Name AS visiting_student_name, student.Room_No, logs.entry_time 
+        FROM logs 
+        JOIN visitor ON logs.Visitor_ID = visitor.visitor_ID 
+        JOIN student ON logs.student_SRN = student.SRN 
+        WHERE logs.exit_time IS NULL
     """)
     current_visitors = cursor.fetchall()
     
+    # Fetch visitor history (where exit time is NOT NULL)
+    cursor.execute("""
+        SELECT logs.log_ID, visitor.visitor_name, visitor.contact_no, visitor.Relation, 
+               student.Name AS visiting_student_name, student.Room_No, logs.entry_time, logs.exit_time
+        FROM logs 
+        JOIN visitor ON logs.Visitor_ID = visitor.visitor_ID 
+        JOIN student ON logs.student_SRN = student.SRN 
+        WHERE logs.exit_time IS NOT NULL
+    """)
+    visitor_history = cursor.fetchall()
+    
     cursor.close()
-    db.close()
-    return render_template('security.html', current_visitors=current_visitors)
+    connection.close()
+    
+    return render_template('security.html', current_visitors=current_visitors, visitor_history=visitor_history)
 
-# 3. Record exit time
-@app.route('/exit_visitor/<int:visitor_id>', methods=['POST'])
-def exit_visitor(visitor_id):
-    db = db_connection()
-    cursor = db.cursor()
 
-    # Update exit time in logs table
-    cursor.execute(
-        "UPDATE logs SET exit_time = %s WHERE Visitor_ID = %s AND exit_time IS NULL",
-        (datetime.now(), visitor_id)
-    )
+# Insert new visitor entry and log entry time
+@app.route('/add_visitor', methods=['POST'])
+def add_visitor():
+    srn = request.form['visiting_SRN']
+    visitor_name = request.form['visitor_name']
+    gender = request.form['gender']
+    contact_no = request.form['contact_no']
+    email = request.form['email']
+    city = request.form['city']
+    state = request.form['state']
+    relation = request.form['relation']
 
-    db.commit()
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Fetch the unit number of the student based on their SRN
+    cursor.execute("SELECT Unit FROM student WHERE SRN = %s", (srn,))
+    student_record = cursor.fetchone()
+
+    if student_record:
+        unit_no = student_record['Unit']
+    else:
+        cursor.close()
+        conn.close()
+        return "Student not found", 404  # Return a 404 error if the student is not found
+
+    # Insert visitor record
+    cursor.execute("""
+        INSERT INTO visitor (visitor_name, gender, contact_no, email, city, state, visiting_SRN, Relation, unit_no)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """, (visitor_name, gender, contact_no, email, city, state, srn, relation, unit_no))
+    visitor_id = cursor.lastrowid
+
+    # Insert log record with entry time as current time and exit time as NULL
+    cursor.execute("""
+        INSERT INTO logs (Visitor_ID, student_SRN, entry_time, unit_no)
+        VALUES (%s, %s, %s, %s)
+    """, (visitor_id, srn, datetime.now(), unit_no))
+    
+    conn.commit()
     cursor.close()
-    db.close()
-    return redirect('security.html')
+    conn.close()
+
+    return redirect(url_for('security'))
+
+
+@app.route('/record_exit/<int:log_id>', methods=['POST'])
+def record_exit(log_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # Update exit time to current time for the given log ID
+    cursor.execute("""
+        UPDATE logs SET exit_time = %s WHERE log_ID = %s
+    """, (datetime.now(), log_id))
+    
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return redirect(url_for('security'))
+
+
 if __name__ == '__main__':
     app.run(debug=True)

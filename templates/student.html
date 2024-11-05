@@ -254,6 +254,30 @@
         padding: 5px 0;
         color: #444;
       }
+
+      /* New styles for Announcements */
+      .announcements {
+        margin-bottom: 30px;
+      }
+
+      .announcement-card {
+        margin-bottom: 20px;
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .announcement-card h5 {
+        color: var(--primary-purple);
+        margin-bottom: 10px;
+        font-size: 1.1em;
+      }
+
+      .announcement-header {
+        align-content: center;
+        font-color: var(--dark-purple);
+      }
     </style>
   </head>
   <body>
@@ -317,43 +341,53 @@
 
       <!-- New Menu Card -->
       <div class="card" style="margin-bottom: 30px">
-        <div class="card-header">Today's Menu (Monday)</div>
+        <div class="card-header">Today's Menu ({{ menu.day }})</div>
         <div class="menu-grid">
           <div class="menu-item">
             <h4>Breakfast</h4>
             <ul>
-              <li>Idli</li>
-              <li>Coconut Chutney</li>
-              <li>Sambar</li>
+              {% for item in menu.breakfast.split(',') %}
+              <li>{{ item.strip() }}</li>
+              {% endfor %}
             </ul>
           </div>
           <div class="menu-item">
             <h4>Lunch</h4>
             <ul>
-              <li>Dal Tadka</li>
-              <li>Rice</li>
-              <li>Roti</li>
-              <li>Aloo Gobi</li>
+              {% for item in menu.lunch.split(',') %}
+              <li>{{ item.strip() }}</li>
+              {% endfor %}
             </ul>
           </div>
           <div class="menu-item">
             <h4>Snacks</h4>
             <ul>
-              <li>Samosa</li>
-              <li>Chai</li>
+              {% for item in menu.snacks.split(',') %}
+              <li>{{ item.strip() }}</li>
+              {% endfor %}
             </ul>
           </div>
           <div class="menu-item">
             <h4>Dinner</h4>
             <ul>
-              <li>Chapati</li>
-              <li>Paneer Butter Masala</li>
-              <li>Jeera Rice</li>
+              {% for item in menu.dinner.split(',') %}
+              <li>{{ item.strip() }}</li>
+              {% endfor %}
             </ul>
           </div>
         </div>
       </div>
 
+      <div class="announcements">
+        <h2 class="announcement-header">Latest Announcements</h2>
+        {% for announcement in announcements %}
+        <div class="announcement-card">
+          <h5>{{ announcement[0] }}</h5>
+          <p>{{ announcement[1] }}</p>
+          <small>{{ announcement[2] }}</small>
+        </div>
+        {% endfor %}
+      </div>
       <!-- New Student Rules Section -->
       <div class="student-rules">
         <h4>Student Rules</h4>
