@@ -1,0 +1,190 @@
+<!-- templates/announcements.html -->
+{% extends "admin/admin_base.html" %}
+{%block page_title%} Create New Announcement{%endblock%}
+{% block content %}
+<style>
+    /* Main Container Styles */
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        background-color: #f5f7fa;
+    }
+    
+    /* Card Styles */
+    .announcement-card {
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    /* Header Styles */
+    .announcement-header {
+        color: #1a365d;
+        font-size: 1.875rem;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 1rem;
+    }
+    
+    /* Form Group Styles */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Label Styles */
+    .form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Required Field Indicator */
+    .required-field::after {
+        content: '*';
+        color: #e53e3e;
+        margin-left: 4px;
+    }
+    
+    /* Input Field Styles */
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background-color: #fff;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: #4299e1;
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+    }
+    
+    /* Textarea Specific Styles */
+    textarea.form-input {
+        min-height: 120px;
+        resize: vertical;
+    }
+    
+    /* Date Input Specific Styles */
+    input[type="date"].form-input {
+        cursor: pointer;
+    }
+    
+    /* Button Container */
+    .button-container {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+    
+    .submit-button {
+        background-color: #4299e1;
+        color: #ffffff;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .submit-button:hover {
+        background-color: #3182ce;
+        transform: translateY(-1px);
+    }
+    
+    .submit-button:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+    }
+    
+    /* Placeholder Styles */
+    ::placeholder {
+        color: #a0aec0;
+    }
+    
+    /* Error State Styles */
+    .form-input.error {
+        border-color: #e53e3e;
+    }
+    
+    .error-message {
+        color: #e53e3e;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+    
+    /* Responsive Adjustments */
+    @media (max-width: 640px) {
+        .container {
+            padding: 1rem;
+        }
+
+        .announcement-card {
+            padding: 1.5rem;
+        }
+        .submit-button {
+            width: 100%;
+        }
+    }
+</style>
+<div class="container">
+    <div class="announcement-card">
+        
+        <form method="POST" action="{{ url_for('announcements') }}">
+            <!-- Title Field -->
+            <div class="form-group">
+                <label for="title" class="form-label required-field">
+                    Announcement Title
+                </label>
+                <input type="text" 
+                       id="title" 
+                       name="title" 
+                       required 
+                       class="form-input"
+                       placeholder="Enter announcement title">
+            </div>
+
+            <!-- Description Field -->
+            <div class="form-group">
+                <label for="description" class="form-label required-field">
+                    Description
+                </label>
+                <textarea id="description" 
+                          name="description" 
+                          required 
+                          class="form-input"
+                          placeholder="Enter announcement description"></textarea>
+            </div>
+
+            <!-- Date Field -->
+            <div class="form-group">
+                <label for="date" class="form-label required-field">
+                    Announcement Date
+                </label>
+                <input type="date" 
+                       id="date" 
+                       name="date" 
+                       required 
+                       class="form-input">
+            </div>
+
+            <!-- Submit Button -->
+            <div class="button-container">
+                <button type="submit" class="submit-button">
+                    Post Announcement
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

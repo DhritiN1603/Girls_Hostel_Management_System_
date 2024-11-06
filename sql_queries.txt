@@ -53,4 +53,61 @@ CREATE TABLE logs (
 );
 
 
+DELIMITER $$
 
+CREATE TRIGGER validate_password_before_update
+BEFORE UPDATE ON login_cred
+FOR EACH ROW
+BEGIN
+    DECLARE password_check INT;
+
+    -- Check if password is at least 8 characters long
+    IF LENGTH(NEW.Password) < 8 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Password must be at least 8 characters long';
+    END IF;
+
+    -- Check if password contains at least one uppercase letter
+    IF NEW.Password NOT REGEXP '[A-Z]' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Password must contain at least one uppercase letter';
+    END IF;
+
+    -- Check if password contains at least one lowercase letter
+    IF NEW.Password NOT REGEXP '[a-z]' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Password must contain at least one lowercase letter';
+    END IF;
+
+    -- Check if password contains at least one number
+    IF NEW.Password NOT REGEXP '[0-9]' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Password must contain at least one number';
+    END IF;
+
+    -- Check if password contains at least one special character
+    IF NEW.Password NOT REGEXP '[$@#&!]' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Password must contain at least one special character ($, @, #, &, or !)';
+    END IF;
+END$$
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE TRIGGER check_current_password_before_update
+BEFORE UPDATE ON login_cred
+FOR EACH ROW
+BEGIN
+    -- Check if the current password is correct
+    IF OLD.Password != NEW.Password THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Current password is incorrect';
+    END IF;
+
+    IF OLD.Password = NEW.Password THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'New password cannot be the same as the current password';
+    END IF;
+END //
+
+DELIMITER ;

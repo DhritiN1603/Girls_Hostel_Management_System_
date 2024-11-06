@@ -1,0 +1,197 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Create User{% endblock %}
+{% block page_title %}Create New User{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <!-- Role Selection -->
+            <div class="mb-3">
+                <label for="role" class="form-label">Select Role</label>
+                <select class="form-select" id="role" name="role" required onchange="toggleFields()">
+                    <option value="">Select</option>
+                    <option value="Student">Student</option>
+                    <option value="Security">Security</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+
+            <!-- Admin Fields -->
+            <div id="adminFields" style="display: none;">
+                <div class="mb-3">
+                    <label for="fname" class="form-label">First Name</label>
+                    <input type="text" class="form-control" id="fname" name="fname" required>
+                </div>
+                <div class="mb-3">
+                    <label for="lname" class="form-label">Last Name</label>
+                    <input type="text" class="form-control" id="lname" name="lname" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone No</label>
+                    <input type="number" class="form-control" id="phone" name="phone" required>
+                </div>
+                <div class="mb-3">
+                    <label for="unit" class="form-label">Unit</label>
+                    <select class="form-control" id="unit" name="unit" required>
+                        <option value="" selected disabled>Select Unit</option>
+                        <option value='1'>Unit-1</option>
+                        <option value='2'>Unit-2</option>
+                        <option value='3'>Unit-3</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+            </div>
+
+            <!-- Student Fields -->
+            <div id="studentFields" style="display: none;">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Full Name</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="srn" class="form-label">SRN</label>
+                    <input type="text" class="form-control" id="srn" name="srn" maxlength="13" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="phone_no" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" id="phone_no" name="phone_no" maxlength="10" required>
+                </div>
+                <div class="mb-3">
+                    <label for="dob" class="form-label">Date of Birth</label>
+                    <input type="date" class="form-control" id="dob" name="dob" required>
+                </div>
+                <div class="mb-3">
+                    <label for="unit" class="form-label">Unit</label>
+                    <select class="form-select" id="unit" name="unit" required>
+                        <option value="" selected disabled>Select Unit</option>
+                        <option value="1">Unit-1</option>
+                        <option value="2">Unit-2</option>
+                        <option value="3">Unit-3</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="branch" class="form-label">Branch</label>
+                    <select class="form-select" id="branch" name="branch" required>
+                        <option value="" selected disabled>Select Branch</option>
+                        <option value="CSE">CSE</option>
+                        <option value="CSE(AIML)">CSE(AIML)</option>
+                        <option value="EC">EC</option>
+                        <option value="EEE">EEE</option>
+                        <option value= "ME">ME</option>
+                        <option value="BT">BT</option>
+                        <option value="B.Des">B.Des</option>
+                        <option value="BBA">BBA</option>
+                        <option value="MBA">MBA</option>
+                        <option value="B.Com">B.Com</option>
+                        <option value="Law">Law</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="year" class="form-label">Year</label>
+                    <input type="number" class="form-control" id="year" name="year" min="1" max="5" required>
+                </div>
+                <div class="mb-3">
+                    <label for="room" class="form-label">Assigned Room</label>
+                    <select class="form-select" id="room" name="room" required>
+                        {% for room in available_rooms %}
+                        <option value="{{ room }}">{{ room }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="address" class="form-label">Address</label>
+                    <input type="text" class="form-control" id="address" name="address" maxlength="100">
+                </div>
+            </div>
+
+
+            <!-- Security/Other Staff Fields -->
+            <div id="staffFields" style="display: none;">
+                <div class="mb-3">
+                    <label for="fname" class="form-label">First Name</label>
+                    <input type="text" class="form-control" id="fname" name="fname" required>
+                </div>
+                <div class="mb-3">
+                    <label for="lname" class="form-label">Last Name</label>
+                    <input type="text" class="form-control" id="lname" name="lname" required>
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input type="number" class="form-control" id="phone" name="phone" required>
+                </div>
+                <div class="mb-3">
+                    <label for="unit" class="form-label">Unit</label>
+                    <select class="form-control" id="unit" name="unit" required>
+                        <option value="" selected disabled>Select Unit</option>
+                        <option value='1'>Unit-1</option>
+                        <option value='2'>Unit-2</option>
+                        <option value='3'>Unit-3</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="shift" class="form-label">Shift</label>
+                    <input type="text" class="form-control" id="shift" name="shift" required>
+                </div>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+            </div>
+
+            <!-- Maintenance Fields -->
+            <div id="maintenanceFields" style="display: none;">
+                <div class="mb-3">
+                    <label for="fname_m" class="form-label">First Name</label>
+                    <input type="text" class="form-control" id="fname_m" name="fname_m" required>
+                </div>
+                <div class="mb-3">
+                    <label for="lname_m" class="form-label">Last Name</label>
+                    <input type="text" class="form-control" id="lname_m" name="lname_m" required>
+                </div>
+                <div class="mb-3">
+                    <label for="phone_m" class="form-label">Phone Number</label>
+                    <input type="number" class="form-control" id="phone_m" name="phone_m" required>
+                </div>
+                <div class="mb-3">
+                    <label for="work" class="form-label">Job Role</label>
+                    <select class="form-select" id="job" name="job" required>
+                        <option value="" selected disabled>Select</option>
+                        <option value="1">Carpenter</option>
+                        <option value="2">Plumber</option>
+                        <option value="3">Electrician</option>
+                    </select>
+                </div>
+                <div class='mb-3'>
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="m_username" name="m_username" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Create User</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleFields() {
+        const role = document.getElementById('role').value;
+        document.getElementById('studentFields').style.display = (role === 'Student') ? 'block' : 'none';
+        document.getElementById('staffFields').style.display = (role === 'Security') ? 'block' : 'none';
+        document.getElementById('maintenanceFields').style.display = (role === 'Maintenance') ? 'block' : 'none';
+        document.getElementById('adminFields').style.display = (role === 'Admin') ? 'block' : 'none';
+    }
+</script>
+{% endblock %}
