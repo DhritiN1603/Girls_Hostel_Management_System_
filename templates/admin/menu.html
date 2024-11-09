@@ -209,12 +209,29 @@
             }
         }
 
-        // Handle form submission
-        document.getElementById('editMenuForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            // Implement your update logic here (e.g., AJAX request to update the menu in the database)
-            // After successful update, close the modal
-            closeEditModal();
+            document.getElementById('editMenuForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Get the day from the hidden input field
+    const day = document.getElementById('dayId').value;
+
+    // Send the form data using AJAX (you can choose to use plain form submission as well)
+    const formData = new FormData(this);
+    fetch(`/edit_menu/${day}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // After successful update, close the modal or redirect
+            alert('Menu updated successfully!');
+            window.location.href = '/menu';  // Replace with your actual menu page route
+        } else {
+            alert('Error updating menu!');
+        }
+    })
+    .catch(error => console.error('Error:', error));
         });
     </script>
 {% endblock %}

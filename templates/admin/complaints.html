@@ -10,7 +10,6 @@
         <table class="table table-bordered table-hover table-striped">
             <thead class="table-dark">
                 <tr>
-                    <th scope="col">Complaint ID</th>
                     <th scope="col">Student Name</th>
                     <th scope="col">Room No</th>
                     <th scope="col">Complaint</th>
@@ -21,11 +20,10 @@
             <tbody>
                 {% for complaint in complaints %}
                 <tr>
-                    <td>{{ complaint.id }}</td>
                     <td>{{ complaint.student_name }}</td>
                     <td>{{ complaint.room_no }}</td>
                     <td>{{ complaint.description }}</td>
-                    <td>{{ complaint.date_submitted }}</td>
+                    <td>{{ complaint.date_submitted.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                     <td>
                         {% if complaint.status == 'Pending' %}
                             <span class="badge bg-warning text-dark">Pending</span>
