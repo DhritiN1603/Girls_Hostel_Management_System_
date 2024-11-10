@@ -120,26 +120,29 @@
     <div class="menu-container">
         <div class="menu-grid">
             {% for item in menu_items %}
-    <div class="menu-card">
-        <h1 class="day-header"><u><b>{{ item['day'] }}</b></u></h1>
-        <br>
-        <div class="meal-section">
-            <h6 class="meal-type">Breakfast</h6>
-            <p class="meal-items">{{ item['breakfast'] }}</p>
-            
-            <h6 class="meal-type">Lunch</h6>
-            <p class="meal-items">{{ item['lunch'] }}</p>
-            
-            <h6 class="meal-type">Snacks</h6>
-            <p class="meal-items">{{ item['snacks'] }}</p>
-            
-            <h6 class="meal-type">Dinner</h6>
-            <p class="meal-items">{{ item['dinner'] }}</p>
-            <br>
-        </div>
+            <div class="menu-card">
+                <h1 class="day-header"><u><b>{{ item['day'] }}</b></u></h1>
+                <br>
+                <div class="meal-section">
+                    <h6 class="meal-type">Breakfast</h6>
+                    <p class="meal-items">{{ item['breakfast'] }}</p>
+                    
+                    <h6 class="meal-type">Lunch</h6>
+                    <p class="meal-items">{{ item['lunch'] }}</p>
+                    
+                    <h6 class="meal-type">Snacks</h6>
+                    <p class="meal-items">{{ item['snacks'] }}</p>
+                    
+                    <h6 class="meal-type">Dinner</h6>
+                    <p class="meal-items">{{ item['dinner'] }}</p>
+                    <br>
+                </div>
+                
+                {% if session['Role'] == 'Admin' %}
                 <button onclick="openEditModal({{ loop.index }})" class="edit-button">
                     Edit Menu
                 </button>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -182,26 +185,22 @@
     </div>
 
     <script>
-        // Function to open the modal and populate it with the current menu data
         function openEditModal(index) {
-            const menuItem = document.querySelectorAll('.menu-card')[index - 1]; // index - 1 because loop.index starts from 1
+            const menuItem = document.querySelectorAll('.menu-card')[index - 1];
+            document.getElementById('dayId').value = menuItem.querySelector('.day-header').textContent;
 
-            // Populate the modal with the current menu item data
             document.getElementById('editBreakfast').value = menuItem.querySelectorAll('.meal-items')[0].textContent;
             document.getElementById('editLunch').value = menuItem.querySelectorAll('.meal-items')[1].textContent;
             document.getElementById('editSnacks').value = menuItem.querySelectorAll('.meal-items')[2].textContent;
             document.getElementById('editDinner').value = menuItem.querySelectorAll('.meal-items')[3].textContent;
 
-            // Display the modal
             document.getElementById('editModal').style.display = "block";
         }
 
-        // Function to close the modal
         function closeEditModal() {
             document.getElementById('editModal').style.display = "none";
         }
 
-        // Close the modal when the user clicks anywhere outside of it
         window.onclick = function(event) {
             const modal = document.getElementById('editModal');
             if (event.target == modal) {
@@ -209,29 +208,26 @@
             }
         }
 
-            document.getElementById('editMenuForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    // Get the day from the hidden input field
-    const day = document.getElementById('dayId').value;
+        document.getElementById('editMenuForm').addEventListener('submit', function(e) {
+            e.preventDefault();
 
-    // Send the form data using AJAX (you can choose to use plain form submission as well)
-    const formData = new FormData(this);
-    fetch(`/edit_menu/${day}`, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // After successful update, close the modal or redirect
-            alert('Menu updated successfully!');
-            window.location.href = '/menu';  // Replace with your actual menu page route
-        } else {
-            alert('Error updating menu!');
-        }
-    })
-    .catch(error => console.error('Error:', error));
+            const day = document.getElementById('dayId').value;
+            const formData = new FormData(this);
+            fetch(`/edit_menu/${day}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Menu updated successfully!');
+                    window.location.href = '/admin/menu';
+                } else {
+                    alert('Error updating menu!');
+                }
+            })
+            .catch(error => console.error('Error:', error));
         });
     </script>
+</body>
 {% endblock %}

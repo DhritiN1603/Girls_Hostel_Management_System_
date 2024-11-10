@@ -72,13 +72,13 @@ def login():
                             elif selected_role == 'Maintenance':
                                 return redirect(url_for('maintenance_dashboard'))
                         else:
-                            print("Invalid role selected for this user", "error")
+                            flash("Invalid role selected for this user", "error")
                     else:
-                        print("Invalid username or password", "error")
+                        flash("Invalid username or password", "error")
 
             except Exception as e:
-                print(f"Login error: {str(e)}")
-                print("An error occurred during login", "error")
+                flash(f"Login error: {str(e)}")
+                flash("An error occurred during login", "error")
             finally:
                 my_cursor.close()
         else:
@@ -104,10 +104,10 @@ def signup():
                     """
                     my_cursor.execute(sql_query, (full_name, srn, year, unit))
                     connection.commit()
-                    print("Registration successful. You can now log in once room alloted.", "success")
+                    flash("Registration successful. You can now log in once room alloted.", "success")
                     return redirect(url_for('login'))
             except Exception as e:
-                print(f"An error occurred during signup: {str(e)}", "error")
+                flash(f"An error occurred during signup: {str(e)}", "error")
             finally:
                 my_cursor.close()
         else:
@@ -119,11 +119,11 @@ def signup():
 @app.route("/admin/home", methods=["POST", "GET"])
 def admin_dashboard():
     if 'Username' not in session:
-        print('Please login first', 'error')
+        flash('Please login first', 'error')
         return redirect(url_for('login'))
     
     if session['Role'] != 'Admin':
-        print('You do not have permission to access this page', 'error')
+        flash('You do not have permission to access this page', 'error')
         return redirect(url_for('login'))
     
     try:
@@ -149,7 +149,7 @@ def admin_dashboard():
             available_rooms=cursor.fetchone()['Available_Rooms']
             
     except Exception as e:
-        print(f"Error fetching announcements: {str(e)}", "error")
+        flash(f"Error fetching announcements: {str(e)}", "error")
         announcements = []
         total_students = 0
         active_complaints = 0
@@ -165,7 +165,7 @@ def admin_dashboard():
 @app.route("/admin/announcements", methods=["POST", "GET"])
 def announcements():
     if 'Username' not in session or session['Role'] != 'Admin':
-        print('Unauthorized access', 'error')
+        flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
 
     if request.method == "POST":
@@ -179,16 +179,16 @@ def announcements():
                     sql = "INSERT INTO announcements (title, description, date_posted) VALUES (%s, %s, %s)"
                     cursor.execute(sql, (title, description, date_posted))
                     connection.commit()
-                    print("Announcement added successfully!", "success")
+                    flash("Announcement added successfully!", "success")
             except Exception as e:
-                print(f"Error: {str(e)}", "error")
+                flash(f"Error: {str(e)}", "error")
 
     return render_template("admin/announcements.html", username=session.get('FName'))
 
 @app.route("/admin/registered", methods=["POST", "GET"])
 def registered_students():
     if 'Username' not in session or session['Role'] != 'Admin':
-        print('Unauthorized access', 'error')
+        flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
     registered_students = []
     try:
@@ -198,7 +198,7 @@ def registered_students():
             cursor.execute(sql,user_unit)
             registered_students = cursor.fetchall()
     except Exception as e:
-        print(f"Error fetching registered students: {str(e)}", "error")
+        flash(f"Error fetching registered students: {str(e)}", "error")
 
     return render_template("admin/registered.html", 
                            registered_students=registered_students, 
@@ -207,7 +207,7 @@ def registered_students():
 @app.route("/admin/complaints", methods=["POST", "GET"])
 def complaints():
     if 'Username' not in session or session['Role'] != 'Admin':
-        print('Unauthorized access', 'error')
+        flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
     
     complaints = []
@@ -228,12 +228,11 @@ def complaints():
                 s.Unit = %s
             """
             user_unit=session['Unit']
-            print(user_unit)
             cursor.execute(sql,user_unit)
             complaints = cursor.fetchall()
-            print(complaints)
+
     except Exception as e:
-        print(f"Error fetching complaints: {str(e)}", "error")
+        flash(f"Error fetching complaints: {str(e)}", "error")
 
     return render_template("admin/complaints.html", 
                            complaints=complaints, 
@@ -244,7 +243,7 @@ def complaints():
 def create_user():
 
     if 'Username' not in session or session['Role'] != 'Admin':
-        print('Unauthorized access', 'error')
+        flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
     unit = session.get('Unit')
     room_list = []
@@ -255,10 +254,9 @@ def create_user():
             rooms = cursor.fetchall()
             room_list = [room['R_no'] for room in rooms]
     except Exception as e:
-        print(f"Error fetching rooms: {str(e)}")
+        flash(f"Error fetching rooms: {str(e)}")
     if request.method == "POST":
         role = request.form.get('role')
-        print(role,unit)
         try:
             cursor = connection.cursor()
             
@@ -280,7 +278,7 @@ def create_user():
                     INSERT INTO student (Name, SRN, Email, Phone_no, DOB, Unit, Branch, Year, Room_No, Address)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (full_name, srn, email, phone_no, dob, unit, branch, year, room, address))
-                print("Student created successfully!", "success")
+                flash("Student created successfully!", "success")
 
             elif role == 'Security':
                 # Insert into the security table, using S_ID as username and password
@@ -302,7 +300,7 @@ def create_user():
                     VALUES (%s,%s, %s, 'Security', %s)
                 """, (fname+" "+lname,s_id, s_id, unit))  # Password is the same as the S_ID
 
-                print("Security staff created successfully!", "success")
+                flash("Security staff created successfully!", "success")
 
             elif role == 'Maintenance':
                 # Insert into the maintenance staff table, using M_ID as username and password
@@ -324,7 +322,7 @@ def create_user():
                     VALUES (%s,%s, %s, 'Maintenance', %s)
                 """, (fname+" "+lname,m_id, m_id, unit))  # Password is the same as the M_ID
 
-                print("Maintenance staff created successfully!", "success")
+                flash("Maintenance staff created successfully!", "success")
         
             # Commit the transaction
             connection.commit()
@@ -332,7 +330,7 @@ def create_user():
 
         except pymysql.MySQLError as e:
             # Handle any database errors
-            print(f"An error occurred: {e}", "error")
+            flash(f"An error occurred: {e}", "error")
             connection.rollback()
 
         finally:
@@ -346,7 +344,7 @@ def create_user():
 @app.route("/admin/menu", methods=["POST", "GET"])
 def menu():
     if 'Username' not in session or session['Role'] != 'Admin':
-        print('Unauthorized access', 'error')
+        flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
 
     try:
@@ -358,40 +356,37 @@ def menu():
                                 menu_items=menu_items, 
                                 username=session.get('FName'))
     except pymysql.Error as e:
-        print(f"An error occurred: {str(e)}", "error")
+        flash(f"An error occurred: {str(e)}", "error")
         return redirect(url_for('admin_dashboard'))
 
 @app.route('/edit_menu/<day>', methods=['POST'])
 def edit_menu(day):
-    # Get the updated menu data from the form submission
     breakfast = request.form['breakfast']
     lunch = request.form['lunch']
     snacks = request.form['snacks']
     dinner = request.form['dinner']
 
-    cursor = connection.cursor()
-    update_query = """
-    UPDATE menu_table
-    SET breakfast = %s, lunch = %s, snacks = %s, dinner = %s
-    WHERE day = %s;
-    """
-    try:
-        # Execute the update query with the provided values
-        cursor.execute(update_query, (breakfast, lunch, snacks, dinner, day))
-        connection.commit()  # Commit the transaction
-        return jsonify(success=True)
-    except Exception as e:
-        connection.rollback()
-        print("Error updating menu:", e)
-        return jsonify(success=False)
-    
+    with connection.cursor() as cursor:
+        update_query = """
+        UPDATE menu
+        SET breakfast = %s, lunch = %s, snacks = %s, dinner = %s
+        WHERE day = %s;
+        """
+        try:
+            cursor.execute(update_query, (breakfast, lunch, snacks, dinner, day))
+            connection.commit()
+            return jsonify(success=True)
+        except Exception as e:
+            connection.rollback()
+            ("Error updating menu:", e)
+            return jsonify(success=False)
 
 
 # Student dashboard (add your student routes here)
 @app.route("/student/dashboard")
 def student_dashboard():
     if 'Username' not in session or session['Role'] != 'Student':
-        print('Unauthorized access', 'error')
+        flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
     return render_template("student/dashboard.html", username=session.get('FName'))
 
@@ -400,7 +395,7 @@ def student_dashboard():
 @app.route("/security/dashboard")
 def security_dashboard():
     if 'Username' not in session or session['Role'] != 'Security':
-        print('Unauthorized access', 'error')
+        flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
     return render_template("security/dashboard.html", username=session.get('FName'))
 
@@ -409,7 +404,7 @@ def security_dashboard():
 @app.route("/maintenance/dashboard")
 def maintenance_dashboard():
     if 'Username' not in session or session['Role'] != 'Maintenance':
-        print('Unauthorized access', 'error')
+        flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
     return render_template("maintenance/dashboard.html", username=session.get('FName'))
 
@@ -420,7 +415,7 @@ def maintenance_dashboard():
 def logout():
     if 'Username' in session:
         session.clear()
-        print("Successfully logged out", "success")
+        flash("Successfully logged out", "success")
     return redirect(url_for('landing'))
 
 if __name__ == "__main__":
