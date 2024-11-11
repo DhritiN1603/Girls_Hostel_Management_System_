@@ -111,3 +111,55 @@ BEGIN
 END //
 
 DELIMITER ;
+
+----------------
+
+DELIMITER $$
+
+CREATE FUNCTION GetMenuForToday()
+RETURNS VARCHAR(1024)
+DETERMINISTIC
+BEGIN
+    DECLARE day_of_week VARCHAR(10);
+    DECLARE breakfast_menu VARCHAR(255);
+    DECLARE lunch_menu VARCHAR(255);
+    DECLARE snacks_menu VARCHAR(255);
+    DECLARE dinner_menu VARCHAR(255);
+    DECLARE menu_string VARCHAR(1024);
+
+    -- Get the current day of the week (e.g., 'Monday', 'Tuesday', etc.)
+    SET day_of_week = UPPER(DAYNAME(CURDATE()));  -- Ensure day is uppercase
+
+    -- Fetch menu details based on the current day of the week
+    SELECT breakfast, lunch, snacks, dinner
+    INTO breakfast_menu, lunch_menu, snacks_menu, dinner_menu
+    FROM menu
+    WHERE UPPER(day) = day_of_week  -- Make sure both sides are uppercase
+    LIMIT 1;
+
+    -- If no menu found for the day, set default values
+    IF breakfast_menu IS NULL THEN
+        SET breakfast_menu = 'No Menu Available';
+    END IF;
+    IF lunch_menu IS NULL THEN
+        SET lunch_menu = 'No Menu Available';
+    END IF;
+    IF snacks_menu IS NULL THEN
+        SET snacks_menu = 'No Menu Available';
+    END IF;
+    IF dinner_menu IS NULL THEN
+        SET dinner_menu = 'No Menu Available';
+    END IF;
+
+    -- Combine all menu items into a single string
+    SET menu_string = CONCAT('Breakfast: ', breakfast_menu, ', Lunch: ', lunch_menu, 
+                             ', Snacks: ', snacks_menu, ', Dinner: ', dinner_menu);
+
+    -- Return the concatenated menu string
+    RETURN menu_string;
+END $$
+
+DELIMITER ;
+
+
+
