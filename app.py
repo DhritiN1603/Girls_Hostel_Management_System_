@@ -404,6 +404,7 @@ def student_dashboard():
     query_student = "SELECT * FROM student WHERE SRN = %s"
     cursor.execute(query_student, (student_srn,))
     student_details = cursor.fetchone()
+    print(student_details)
 
     if not student_details:
         flash('Student details not found', 'error')
@@ -564,6 +565,10 @@ def student_update_password():
         current_password = request.form['currentPassword']
         new_password = request.form['newPassword']
         confirm_password = request.form['confirmPassword']
+
+        print(current_password)
+        print(new_password)
+        print(confirm_password)
 
         # Check if passwords match
         if new_password != confirm_password:
@@ -762,7 +767,6 @@ def add_visitor():
     cursor.execute("SELECT Unit FROM security WHERE S_ID = %s", (session['Username'],))
     security_unit_record = cursor.fetchone()
 
-    # Ensure security unit exists in session data before proceeding
     if security_unit_record:
         unit_no = security_unit_record['Unit']
     else:
@@ -777,7 +781,6 @@ def add_visitor():
     if not student_unit_record or student_unit_record['Unit'] != unit_no:
         cursor.close()
         flash("The student is not from your unit. Cannot add visitor.", "error")
-        print("The student is not from your unit. Cannot add visitor.", "error")
         return redirect(url_for('security_dashboard'))
 
     # Insert visitor record
@@ -797,7 +800,6 @@ def add_visitor():
     cursor.close()
 
     flash("Visitor added successfully.", "success")
-    print("Visitor added successfully.")
     return redirect(url_for('security_dashboard'))
 
 
