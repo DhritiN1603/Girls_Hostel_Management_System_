@@ -393,8 +393,6 @@ def student_dashboard():
         flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
 
-    # Get the current day of the week
-    current_day = datetime.now().strftime('%A')  # e.g., 'Monday'
     username = session['Username']  # Assuming you store the username in session
     student_srn = username.upper()  # Assuming the username is in the format S_<SRN>
 
@@ -404,7 +402,6 @@ def student_dashboard():
     query_student = "SELECT * FROM student WHERE SRN = %s"
     cursor.execute(query_student, (student_srn,))
     student_details = cursor.fetchone()
-    print(student_details)
 
     if not student_details:
         flash('Student details not found', 'error')
@@ -412,7 +409,7 @@ def student_dashboard():
         return redirect(url_for('login'))
 
     # Fetch room details using the Room_No from student details
-    room_no = student_details['Room_no']
+    room_no = student_details['Room_No']
     query_room = "SELECT * FROM room WHERE R_No = %s"
     cursor.execute(query_room, (room_no,))
     room_details = cursor.fetchone()
@@ -422,23 +419,45 @@ def student_dashboard():
     cursor.execute(query_warden, (student_details['Unit'],))
     warden_details = cursor.fetchone()
 
-    # Fetch the menu for the current day
-    query_menu = "SELECT * FROM menu WHERE day = %s"
-    cursor.execute(query_menu, (current_day,))
-    result = cursor.fetchone()
+    # Call the MySQL function to fetch the menu for today
+    cursor.execute("SELECT GetMenuForToday()")
+    menu_result = cursor.fetchone()
 
-    if result:
+    # Debugging: Check the menu result
+    print("Menu Result:", menu_result)
+
+    # Extract the menu string and parse it using regex
+    if menu_result and 'GetMenuForToday()' in menu_result:
+        menu_string = menu_result['GetMenuForToday()']  # Correctly access the value
+
+        # Use regular expression to capture each menu item
+        menu_regex = r"Breakfast: (.*?), Lunch: (.*?), Snacks: (.*?), Dinner: (.*)"
+        match = re.search(menu_regex, menu_string)
+
+        if match:
+            breakfast = match.group(1)
+            lunch = match.group(2)
+            snacks = match.group(3)
+            dinner = match.group(4)
+        else:
+            # If regex doesn't match, set default values
+            breakfast = lunch = snacks = dinner = "No Menu Available"
+
+        # Debugging: Check the extracted menu items
+        print(f"Breakfast: {breakfast}, Lunch: {lunch}, Snacks: {snacks}, Dinner: {dinner}")
+
+        # Create the menu dictionary to pass to the template
         menu_item = {
-            'id': result['id'],
-            'day': result['day'],
-            'breakfast': result['breakfast'],
-            'lunch': result['lunch'],
-            'snacks': result['snacks'],
-            'dinner': result['dinner']
+            'day': datetime.now().strftime('%A'),  # Get the current day
+            'breakfast': breakfast,
+            'lunch': lunch,
+            'snacks': snacks,
+            'dinner': dinner
         }
     else:
+        # Fallback if menu_result is empty
         menu_item = {
-            'day': current_day,
+            'day': datetime.now().strftime('%A'),
             'breakfast': 'No Menu Available',
             'lunch': 'No Menu Available',
             'snacks': 'No Menu Available',
@@ -468,6 +487,7 @@ def student_dashboard():
                            room=room_details, 
                            warden=warden_details, 
                            roommates=roommates)
+
 
 
 @app.route('/submit-complaint', methods=['POST'])
