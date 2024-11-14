@@ -2,6 +2,9 @@ from flask import Flask, redirect, url_for, render_template, request, session, f
 from db_connection import get_connection
 import pymysql
 from datetime import datetime
+import re
+from datetime import datetime
+
 
 app = Flask(__name__)
 app.secret_key = "dbms_ghms"
@@ -175,13 +178,12 @@ def announcements():
     if request.method == "POST":
         title = request.form.get("title")
         description = request.form.get("description")
-        date_posted = request.form.get("date")
 
-        if title and description and date_posted:
+        if title and description:
             try:
                 with connection.cursor() as cursor:
-                    sql = "INSERT INTO announcements (title, description, date_posted) VALUES (%s, %s, %s)"
-                    cursor.execute(sql, (title, description, date_posted))
+                    sql = "INSERT INTO announcements (title, description, date_posted) VALUES (%s, %s,CURDATE())"
+                    cursor.execute(sql, (title, description))
                     connection.commit()
                     flash("Announcement added successfully!", "success")
             except Exception as e:
@@ -212,45 +214,88 @@ def registered_students():
 def complaints():
     if 'Username' not in session or session['Role'] != 'Admin':
         flash('Unauthorized access', 'error')
+        print('Unauthoriszed acess')
         return redirect(url_for('login'))
-    
-    complaints = []
+
+    if request.method == "POST":
+        complaint_id = request.form.get("complaint_id")
+        staff_name = request.form.get("staff_name")
+
+        if not complaint_id or not staff_name:
+            print("Error: Complaint ID or Staff Name is missing")
+            return jsonify(success=False, error="Complaint ID or Staff Name is missing"), 400
+
+        try:
+            with connection.cursor() as cursor:
+                # Update the assigned_staff column in the complaint table
+                sql_update = """
+                UPDATE complaint 
+                SET assigned_staff = %s 
+                WHERE c_id = %s
+                """
+                cursor.execute(sql_update, (staff_name, complaint_id))
+                connection.commit()
+            return jsonify(success=True)  # Return JSON response indicating success
+        except Exception as e:
+            print(f"Error updating complaint: {str(e)}")
+            return jsonify(success=False, error=str(e)), 500  # Return JSON response indicating failure
+
+    # GET request: Fetch complaints and staff data
     try:
         with connection.cursor() as cursor:
-            sql = """
+            sql_complaints = """
             SELECT 
+                c.c_id as complaint_id,
                 s.Name AS student_name,
                 c.R_NO AS room_no,
                 c.Description AS description,
+                c.Category AS Category,
                 c.Date_OF_SUBMISSION AS date_submitted,
-                c.Status AS status 
+                c.Status AS status,
+                c.assigned_staff AS assigned_staff
             FROM 
                 complaint c
             JOIN 
                 student s ON c.SRN = s.SRN
             WHERE 
-                s.Unit = %s
+                s.Unit = %s AND c.Status IN ('Pending', 'Assigned')
             """
-            user_unit=session['Unit']
-            cursor.execute(sql,user_unit)
+            user_unit = session['Unit']
+            cursor.execute(sql_complaints, user_unit)
             complaints = cursor.fetchall()
 
+            # Fetch staff by category
+            category_to_role = {
+                'Electrical': 'Electrician',
+                'Furniture': 'Carpenter',
+                'Plumbing': 'Plumber'
+            }
+            staff_by_category = {}
+            for category, role in category_to_role.items():
+                sql_staff = "SELECT Fname FROM maintenancestaff WHERE work=%s"
+                cursor.execute(sql_staff, (role,))
+                staff_by_category[category] = cursor.fetchall()
+
     except Exception as e:
-        flash(f"Error fetching complaints: {str(e)}", "error")
+        flash(f"Error fetching complaints or staff: {str(e)}", "error")
 
     return render_template("admin/complaints.html", 
                            complaints=complaints, 
+                           staff_by_category=staff_by_category, 
                            username=session.get('FName'))
+
 
 
 @app.route("/admin/create_user", methods=["POST", "GET"])
 def create_user():
-
     if 'Username' not in session or session['Role'] != 'Admin':
         flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
+    
     unit = session.get('Unit')
     room_list = []
+    
+    # Fetch available rooms for the admin's unit
     try:
         with connection.cursor() as cursor:
             sql_room = "SELECT R_no FROM room WHERE unit=%s"
@@ -259,15 +304,14 @@ def create_user():
             room_list = [room['R_no'] for room in rooms]
     except Exception as e:
         flash(f"Error fetching rooms: {str(e)}")
+    
     if request.method == "POST":
         role = request.form.get('role')
         try:
             cursor = connection.cursor()
             
             if role == 'Student':
-                
-                # Insert into the student table
-                
+                # Collect student information
                 full_name = request.form['name']
                 srn = request.form['srn']
                 email = request.form['email']
@@ -278,14 +322,25 @@ def create_user():
                 room = request.form['room']
                 address = request.form['address']
 
+                # Insert into student table
                 cursor.execute("""
                     INSERT INTO student (Name, SRN, Email, Phone_no, DOB, Unit, Branch, Year, Room_No, Address)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (full_name, srn, email, phone_no, dob, unit, branch, year, room, address))
-                flash("Student created successfully!", "success")
+
+                # Insert into login_cred and set as MySQL user with 'student' role
+                cursor.execute("""
+                    INSERT INTO login_cred (Fname, Username, Password, Role, Unit)
+                    VALUES (%s, %s, %s, 'Student', %s)
+                """, (full_name, srn, srn, unit))  # Password set as SRN
+
+                cursor.execute(f"CREATE USER '{srn}'@'%' IDENTIFIED BY '{srn}';")
+                cursor.execute(f"GRANT 'student' TO '{srn}'@'%';")
+                
+                flash("Student created and role granted successfully!", "success")
 
             elif role == 'Security':
-                # Insert into the security table, using S_ID as username and password
+                # Collect security staff information
                 s_id = request.form['sid']
                 fname = request.form['fname']
                 lname = request.form['lname']
@@ -298,16 +353,19 @@ def create_user():
                     VALUES (%s, %s, %s, %s, %s, %s)
                 """, (s_id, fname, lname, phone_no, unit, shift))
 
-                # Insert into login_cred table with username and password as S_ID
+                # Insert into login_cred and set as MySQL user with 'security' role
                 cursor.execute("""
-                    INSERT INTO login_cred (Fname,Username, Password, Role, Unit)
-                    VALUES (%s,%s, %s, 'Security', %s)
-                """, (fname+" "+lname,s_id, s_id, unit))  # Password is the same as the S_ID
+                    INSERT INTO login_cred (Fname, Username, Password, Role, Unit)
+                    VALUES (%s, %s, %s, 'Security', %s)
+                """, (fname + " " + lname, s_id, s_id, unit))  # Password set as S_ID
 
-                flash("Security staff created successfully!", "success")
+                cursor.execute(f"CREATE USER '{s_id}'@'%' IDENTIFIED BY '{s_id}';")
+                cursor.execute(f"GRANT 'security' TO '{s_id}'@'%';")
+                
+                flash("Security staff created and role granted successfully!", "success")
 
             elif role == 'Maintenance':
-                # Insert into the maintenance staff table, using M_ID as username and password
+                # Collect maintenance staff information
                 m_id = request.form['mid']
                 fname = request.form['fname_m']
                 lname = request.form['lname_m']
@@ -320,17 +378,19 @@ def create_user():
                     VALUES (%s, %s, %s, %s, %s)
                 """, (m_id, fname, lname, contact, work))
 
-                # Insert into login_cred table with username and password as M_ID
+                # Insert into login_cred and set as MySQL user with 'maintenance' role
                 cursor.execute("""
-                    INSERT INTO login_cred (Fname ,Username, Password, Role, Unit)
-                    VALUES (%s,%s, %s, 'Maintenance', %s)
-                """, (fname+" "+lname,m_id, m_id, unit))  # Password is the same as the M_ID
+                    INSERT INTO login_cred (Fname, Username, Password, Role, Unit)
+                    VALUES (%s, %s, %s, 'Maintenance', %s)
+                """, (fname + " " + lname, m_id, m_id, unit))  # Password set as M_ID
 
-                flash("Maintenance staff created successfully!", "success")
-        
-            # Commit the transaction
+                cursor.execute(f"CREATE USER '{m_id}'@'%' IDENTIFIED BY '{m_id}';")
+                cursor.execute(f"GRANT 'maintenance' TO '{m_id}'@'%';")
+                
+                flash("Maintenance staff created and role granted successfully!", "success")
+
+            # Commit all changes after all operations
             connection.commit()
-
 
         except pymysql.MySQLError as e:
             # Handle any database errors
@@ -343,7 +403,8 @@ def create_user():
         return redirect(url_for('create_user'))
 
     # Render the form page
-    return render_template("admin/create_user.html",room_list=room_list, username=session.get('FName'))
+    return render_template("admin/create_user.html", room_list=room_list, username=session.get('FName'))
+
 
 @app.route("/admin/menu", methods=["POST", "GET"])
 def menu():
@@ -409,7 +470,7 @@ def student_dashboard():
         return redirect(url_for('login'))
 
     # Fetch room details using the Room_No from student details
-    room_no = student_details['Room_No']
+    room_no = student_details['Room_no']
     query_room = "SELECT * FROM room WHERE R_No = %s"
     cursor.execute(query_room, (room_no,))
     room_details = cursor.fetchone()
@@ -606,11 +667,11 @@ def student_update_password():
             query_check_password = "SELECT Password FROM login_cred WHERE Username = %s"
             cursor.execute(query_check_password, (username,))
             result = cursor.fetchone()
-            
+
             if result is None:
                 flash("Username not found.", "error")
                 return redirect(url_for('student_update_password'))
-            
+
             if result['Password'] != current_password:
                 flash("Current password is incorrect.", "error")
                 return redirect(url_for('student_update_password'))
@@ -642,6 +703,7 @@ def student_update_password():
 
 
 
+
 @app.route('/maintenance')
 def maintenance_dashboard():
     if 'Username' not in session or session['Role'] != 'Maintenance':
@@ -660,12 +722,13 @@ def maintenance_dashboard():
     }
 
     # Get the work category for the maintenance staff
-    cursor.execute("SELECT Work FROM maintenancestaff WHERE M_ID = %s", (maintenance_id,))
+    cursor.execute("SELECT Work,Fname FROM maintenancestaff WHERE M_ID = %s", (maintenance_id,))
     maintenance_work_record = cursor.fetchone()
     cursor.close()
 
     if maintenance_work_record:
         work_code = maintenance_work_record['Work']
+        fname=maintenance_work_record['Fname']
         category = work_category_map.get(work_code)  # Get the complaint category
 
         # If a valid category is found, fetch matching complaints
@@ -674,9 +737,9 @@ def maintenance_dashboard():
             query = """
             SELECT C_ID, R_NO, Category, Description, Date_OF_SUBMISSION, Status 
             FROM complaint 
-            WHERE Category = %s
+            WHERE Category = %s AND assigned_staff=%s
             """
-            cursor.execute(query, (category,))
+            cursor.execute(query, (category,fname))
             complaints = cursor.fetchall()
             cursor.close()
             
@@ -688,8 +751,6 @@ def maintenance_dashboard():
         flash("Maintenance staff not found.", "error")
         return redirect(url_for('login'))
 
-
-# Flask Route Code (in app.py)
 @app.route('/update_complaint_status/<int:c_id>', methods=['POST'])
 def update_complaint_status(c_id):
     if 'Username' not in session or session['Role'] != 'Maintenance':
@@ -714,7 +775,6 @@ def update_complaint_status(c_id):
     
     # Redirect back to the maintenance page to refresh the data
     return redirect(url_for('maintenance_dashboard'))
-
 
 @app.route("/security")
 def security_dashboard():

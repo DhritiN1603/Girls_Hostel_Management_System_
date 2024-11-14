@@ -1,63 +1,119 @@
-{% extends "admin/admin_base.html" %}
-
-{% block title %}Complaints{% endblock %}
-{% block page_title %}Complaints List{% endblock %}
-
-{% block content %}
-
+{% extends "admin/admin_base.html" %} {% block title %}Complaints{% endblock %}
+{% block page_title %}Complaints List{% endblock %} {% block content %}
 <div class="card mt-4">
-    <div class="card-body">
-        <h3 class="text-center mb-4">Complaints Overview</h3>
-        <table class="table table-bordered table-hover table-striped">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col">Student Name</th>
-                    <th scope="col">Room No</th>
-                    <th scope="col">Complaint</th>
-                    <th scope="col">Date Submitted</th>
-                    <th scope="col">Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for complaint in complaints %}
-                <tr>
-                    <td>{{ complaint.student_name }}</td>
-                    <td>{{ complaint.room_no }}</td>
-                    <td>{{ complaint.description }}</td>
-                    <td>{{ complaint.date_submitted.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                    <td>
-                        {% if complaint.status == 'Pending' %}
-                            <span class="badge bg-warning text-dark">Pending</span>
-                        {% elif complaint.status == 'Resolved' %}
-                            <span class="badge bg-success">Resolved</span>
-                        {% else %}
-                            <span class="badge bg-secondary">Unknown</span>
-                        {% endif %}
-                    </td>
-                </tr>
+  <div class="card-body">
+    <h3 class="text-center mb-4">Complaints Overview</h3>
+    <table class="table table-bordered table-hover table-striped">
+      <thead class="table-dark">
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Student Name</th>
+          <th scope="col">Room No</th>
+          <th scope="col">Complaint</th>
+          <th scope="col">Date Submitted</th>
+          <th scope="col">Category</th>
+          <th scope="col">Status</th>
+          <th scope="col">Assign to Staff</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for complaint in complaints %}
+        <tr>
+          <td>{{ complaint.complaint_id }}</td>
+          <td>{{ complaint.student_name }}</td>
+          <td>{{ complaint.room_no }}</td>
+          <td>{{ complaint.description }}</td>
+          <td>{{ complaint.date_submitted.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+          <td>{{ complaint.Category }}</td>
+          <td>
+            <span
+              class="badge {% if complaint.status == 'Pending' %}bg-warning text-dark{% else %}bg-success{% endif %}"
+            >
+              {{ complaint.status }}
+            </span>
+          </td>
+          <td>
+            <form
+              id="assignForm_{{ complaint.complaint_id }}"
+              action="{{ url_for('complaints') }}"
+              method="POST"
+              onsubmit="assignStaff(event, {{ complaint.complaint_id }})"
+            >
+              <input
+                type="hidden"
+                name="complaint_id"
+                value="{{ complaint.complaint_id }}"
+              />
+
+              {% if complaint.assigned_staff %}
+              <!-- Display assigned staff name if already assigned -->
+              <span class="assigned-staff">{{ complaint.assigned_staff }}</span>
+              {% else %}
+              <!-- Display dropdown and button if not assigned yet -->
+              <select name="staff_name" class="form-select" required>
+                <option value="">Select Staff</option>
+                {% for staff in staff_by_category[complaint.Category] %}
+                <option value="{{ staff.Fname }}">{{ staff.Fname }}</option>
                 {% endfor %}
-            </tbody>
-        </table>
-    </div>
+              </select>
+              <button type="submit" class="btn btn-primary btn-sm mt-2">
+                Assign
+              </button>
+              {% endif %}
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
+<!-- Optional: Styling for better presentation -->
 <style>
-    .card {
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        border-radius: 8px;
-    }
-    h3 {
-        color: #343a40;
-        font-weight: 600;
-    }
-    table {
-        margin-top: 20px;
-    }
-    .table-hover tbody tr:hover {
-        background-color: #f8f9fa;
-    }
-    .badge {
-        font-size: 0.9em;
-    }
+  .card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+  }
+  h3 {
+    color: #343a40;
+    font-weight: 600;
+  }
+  table {
+    margin-top: 20px;
+  }
+  .table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+  .badge {
+    font-size: 0.9em;
+  }
 </style>
+
+<!-- JavaScript to handle AJAX submission for form without reloading -->
+<script>
+  function assignStaff(event, complaintId) {
+    event.preventDefault(); // Prevent the form from submitting the usual way
+
+    const form = document.getElementById(`assignForm_${complaintId}`);
+    const formData = new FormData(form);
+
+    fetch("{{ url_for('complaints') }}", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          // Update the form to display assigned staff name instead of the button and dropdown
+          form.innerHTML = `<span class="assigned-staff">${formData.get(
+            "staff_name"
+          )}</span>`;
+        } else {
+          alert("Error assigning staff. Please try again.");
+        }
+      })
+      .catch((error) => console.error("Error:", error));
+  }
+</script>
 {% endblock %}

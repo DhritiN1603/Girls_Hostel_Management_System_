@@ -1,0 +1,49 @@
+-- Admin Role
+CREATE ROLE 'admin';
+
+-- Student Role
+CREATE ROLE 'student';
+
+-- Maintenance Role
+CREATE ROLE 'maintenance';
+
+-- Security Role
+CREATE ROLE 'security';
+
+--- Admin Role Privileges ---
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON ghms.announcements TO 'admin';
+GRANT SELECT, UPDATE ON ghms.registered TO 'admin';
+GRANT SELECT, UPDATE, DELETE ON ghms.complaint TO 'admin';
+GRANT SELECT, UPDATE ON ghms.room TO 'admin';
+GRANT SELECT, INSERT, UPDATE, DELETE ON ghms.student TO 'admin';
+GRANT SELECT, UPDATE ON ghms.menu TO 'admin';
+GRANT SELECT, INSERT, UPDATE, DELETE ON ghms.login_cred TO 'admin';
+
+
+
+----- student role privilages -----
+
+GRANT SELECT, INSERT, UPDATE ON ghms.complaint TO 'student';
+GRANT SELECT ON ghms.menu TO 'student';
+GRANT SELECT ON ghms.student TO 'student';
+GRANT SELECT, UPDATE ON ghms.login_cred TO 'student';
+
+
+
+------ maintenancestaff role privilages -------
+
+GRANT SELECT, UPDATE ON ghms.complaint TO 'maintenance';
+GRANT SELECT ON ghms.maintenancestaff TO 'maintenance';
+
+
+------- Security Role Privileges ----
+
+GRANT SELECT, INSERT, UPDATE ON ghms.visitor TO 'security';
+GRANT SELECT, INSERT, UPDATE ON ghms.logs TO 'security';
+GRANT SELECT ON ghms.security TO 'security';
+GRANT SELECT ON ghms.student TO 'security';
+
+
+
+

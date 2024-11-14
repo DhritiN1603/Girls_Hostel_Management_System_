@@ -1,179 +1,297 @@
-{% extends "admin/admin_base.html" %}
-
-{% block title %}Create User{% endblock %}
-{% block page_title %}Create New User{% endblock %}
-
-{% block content %}
-
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div class="container mt-3">
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-{% endwith %}
+{% extends "admin/admin_base.html" %} {% block title %}Create User{% endblock %}
+{% block page_title %}Create New User{% endblock %} {% block content %} {% with
+messages = get_flashed_messages(with_categories=true) %} {% if messages %}
+<div class="container mt-3">
+  {% for category, message in messages %}
+  <div
+    class="alert alert-{{ category }} alert-dismissible fade show"
+    role="alert"
+  >
+    {{ message }}
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Close"
+    ></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %} {% endwith %}
 
 <div class="card">
-    <div class="card-body">
-
-        <!-- Role Selection -->
-        <div class="mb-3">
-            <label for="role" class="form-label">Select Role</label>
-            <select class="form-select" id="role" name="role" required onchange="toggleForms()">
-                <option value="">Select</option>
-                <option value="Student">Student</option>
-                <option value="Security">Security</option>
-                <option value="Maintenance">Maintenance</option>
-            </select>
-        </div>
-
-        <!-- Student Form -->
-        <form id="studentForm" method="POST" action="{{ url_for('create_user') }}"  style="display: none;">
-            <input type="hidden" name="role" value="Student">
-            <div class="mb-3">
-                <label for="name" class="form-label">Full Name</label>
-                <input type="text" class="form-control" id="name" name="name" required>
-            </div>
-            <div class="mb-3">
-                <label for="srn" class="form-label">SRN</label>
-                <input type="text" class="form-control" id="srn" name="srn" minlength="13" required>
-            </div>
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-            <div class="mb-3">
-                <label for="phone_no" class="form-label">Phone Number</label>
-                <input type="tel" class="form-control" id="phone_no" name="phone_no" maxlength="10" required>
-            </div>
-            <div class="mb-3">
-                <label for="dob" class="form-label">Date of Birth</label>
-                <input type="date" class="form-control" id="dob" name="dob" required>
-            </div>
-            <div class="mb-3">
-                <label for="branch" class="form-label">Branch</label>
-                <select class="form-select" id="branch" name="branch" required>
-                    <option value="" selected disabled>Select Branch</option>
-                    <option value="CSE">CSE</option>
-                    <option value="CSE(AIML)">CSE(AIML)</option>
-                    <option value="EC">EC</option>
-                    <option value="EEE">EEE</option>
-                    <option value="ME">ME</option>
-                    <option value="BT">BT</option>
-                    <option value="B.Des">B.Des</option>
-                    <option value="BBA">BBA</option>
-                    <option value="MBA">MBA</option>
-                    <option value="B.Com">B.Com</option>
-                    <option value="Law">Law</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="year" class="form-label">Year</label>
-                <input type="number" class="form-control" id="year" name="year" min="1" max="5" required>
-            </div>
-            <div class="mb-3">
-                <label for="room" class="form-label">Assigned Room</label>
-                <select class="form-select" id="room" name="room" required>
-                    <option value="" selected disabled>Select Room</option>
-                    {% for room in room_list %}
-                        <option value="{{ room }}">{{ room }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="address" class="form-label">Address</label>
-                <input type="text" class="form-control" id="address" name="address" maxlength="100">
-            </div>
-            <button type="submit" class="btn btn-primary">Create Student Account</button>
-        </form>
-
-        <!-- Security Form -->
-        <form id="securityForm" method="POST" action="{{ url_for('create_user') }}" style="display: none;">
-             <input type="hidden" name="role" value="Security">
-            <div class="mb-3">
-                
-                <label for="fname" class="form-label">First Name</label>
-                <input type="text" class="form-control" id="fname" name="fname" required>
-            </div>
-            <div class="mb-3">
-                <label for="lname" class="form-label">Last Name</label>
-                <input type="text" class="form-control" id="lname" name="lname" required>
-            </div>
-            <div class="mb-3">
-                <label for="phone" class="form-label">Phone Number</label>
-                <input type="number"  class="form-control" id="phone" name="phone" maxlength="10" required>
-            </div>
-            <div class="mb-3">
-                <label for="shift" class="form-label">Shift</label>
-                <select class="form-control" id="shift" name="shift" required>
-                    <option value="Morning">Morning</option>
-                    <option value="Night">Night</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="sid" class="form-label">Username</label>
-                <input type="text" minlength="8" class="form-control" id="sid" name="sid" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Create Security Account</button>
-        </form>
-
-        <!-- Maintenance Form -->
-        <form id="maintenanceForm" method="POST" action="{{ url_for('create_user') }}" role="Maintenance" style="display: none;">
-            <input type="hidden" name="role" value="Maintenance">
-            <div class="mb-3">
-                <label for="fname_m" class="form-label">First Name</label>
-                <input type="text" class="form-control" id="fname_m" name="fname_m" required>
-            </div>
-            <div class="mb-3">
-                <label for="lname_m" class="form-label">Last Name</label>
-                <input type="text" class="form-control" id="lname_m" name="lname_m" required>
-            </div>
-            <div class="mb-3">
-                <label for="phone_m"  class="form-label">Phone Number</label>
-                <input type="number" maxlength="10" class="form-control" id="phone_m" name="phone_m" required>
-            </div>
-            <div class="mb-3">
-                <label for="work" class="form-label">Job Role</label>
-                <select class="form-select" id="job" name="job" required>
-                    <option value="" selected disabled>Select</option>
-                    <option value="Carpenter">Carpenter</option>
-                    <option value="Plumber">Plumber</option>
-                    <option value="Electrician">Electrician</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="mid" class="form-label">Username</label>
-                <input type="text" minlength="8" class="form-control" id="mid" name="mid" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Create Maintenance Account</button>
-        </form>
-
+  <div class="card-body">
+    <!-- Role Selection -->
+    <div class="mb-3">
+      <label for="role" class="form-label">Select Role</label>
+      <select
+        class="form-select"
+        id="role"
+        name="role"
+        required
+        onchange="toggleForms()"
+      >
+        <option value="">Select</option>
+        <option value="Student">Student</option>
+        <option value="Security">Security</option>
+        <option value="Maintenance">Maintenance</option>
+      </select>
     </div>
+
+    <!-- Student Form -->
+    <form
+      id="studentForm"
+      method="POST"
+      action="{{ url_for('create_user') }}"
+      style="display: none"
+    >
+      <input type="hidden" name="role" value="Student" />
+      <div class="mb-3">
+        <label for="name" class="form-label">Full Name</label>
+        <input
+          type="text"
+          class="form-control"
+          id="name"
+          name="name"
+          required
+        />
+      </div>
+      <div class="mb-3">
+        <label for="srn" class="form-label">SRN</label>
+        <input
+          type="text"
+          class="form-control"
+          id="srn"
+          name="srn"
+          minlength="13"
+          required
+        />
+      </div>
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input
+          type="email"
+          class="form-control"
+          id="email"
+          name="email"
+          required
+        />
+      </div>
+      <div class="mb-3">
+        <label for="phone_no" class="form-label">Phone Number</label>
+        <input
+          type="tel"
+          class="form-control"
+          id="phone_no"
+          name="phone_no"
+          maxlength="10"
+          required
+        />
+      </div>
+      <div class="mb-3">
+        <label for="dob" class="form-label">Date of Birth</label>
+        <input type="date" class="form-control" id="dob" name="dob" required />
+      </div>
+      <div class="mb-3">
+        <label for="branch" class="form-label">Branch</label>
+        <select class="form-select" id="branch" name="branch" required>
+          <option value="" selected disabled>Select Branch</option>
+          <option value="CSE">CSE</option>
+          <option value="CSE(AIML)">CSE(AIML)</option>
+          <option value="EC">EC</option>
+          <option value="EEE">EEE</option>
+          <option value="ME">ME</option>
+          <option value="BT">BT</option>
+          <option value="B.Des">B.Des</option>
+          <option value="BBA">BBA</option>
+          <option value="MBA">MBA</option>
+          <option value="B.Com">B.Com</option>
+          <option value="Law">Law</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="year" class="form-label">Year</label>
+        <input
+          type="number"
+          class="form-control"
+          id="year"
+          name="year"
+          min="1"
+          max="5"
+          required
+        />
+      </div>
+      <div class="mb-3">
+        <label for="room" class="form-label">Assigned Room</label>
+        <select class="form-select" id="room" name="room" required>
+          <option value="" selected disabled>Select Room</option>
+          {% for room in room_list %}
+          <option value="{{ room }}">{{ room }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="address" class="form-label">Address</label>
+        <input
+          type="text"
+          class="form-control"
+          id="address"
+          name="address"
+          maxlength="100"
+        />
+      </div>
+      <button type="submit" class="btn btn-primary">
+        Create Student Account
+      </button>
+    </form>
+
+    <!-- Security Form -->
+    <form
+      id="securityForm"
+      method="POST"
+      action="{{ url_for('create_user') }}"
+      style="display: none"
+    >
+      <input type="hidden" name="role" value="Security" />
+      <div class="mb-3">
+        <label for="fname" class="form-label">First Name</label>
+        <input
+          type="text"
+          class="form-control"
+          id="fname"
+          name="fname"
+          required
+        />
+      </div>
+      <div class="mb-3">
+        <label for="lname" class="form-label">Last Name</label>
+        <input
+          type="text"
+          class="form-control"
+          id="lname"
+          name="lname"
+          required
+        />
+      </div>
+      <div class="mb-3">
+        <label for="phone" class="form-label">Phone Number</label>
+        <input
+          type="number"
+          class="form-control"
+          id="phone"
+          name="phone"
+          maxlength="10"
+          required
+        />
+      </div>
+      <div class="mb-3">
+        <label for="shift" class="form-label">Shift</label>
+        <select class="form-control" id="shift" name="shift" required>
+          <option value="Morning">Morning</option>
+          <option value="Night">Night</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="sid" class="form-label">Username</label>
+        <input
+          type="text"
+          minlength="3"
+          class="form-control"
+          id="sid"
+          name="sid"
+          required
+        />
+      </div>
+      <button type="submit" class="btn btn-primary">
+        Create Security Account
+      </button>
+    </form>
+
+    <!-- Maintenance Form -->
+    <form
+      id="maintenanceForm"
+      method="POST"
+      action="{{ url_for('create_user') }}"
+      role="Maintenance"
+      style="display: none"
+    >
+      <input type="hidden" name="role" value="Maintenance" />
+      <div class="mb-3">
+        <label for="fname_m" class="form-label">First Name</label>
+        <input
+          type="text"
+          class="form-control"
+          id="fname_m"
+          name="fname_m"
+          required
+        />
+      </div>
+      <div class="mb-3">
+        <label for="lname_m" class="form-label">Last Name</label>
+        <input
+          type="text"
+          class="form-control"
+          id="lname_m"
+          name="lname_m"
+          required
+        />
+      </div>
+      <div class="mb-3">
+        <label for="phone_m" class="form-label">Phone Number</label>
+        <input
+          type="number"
+          maxlength="10"
+          class="form-control"
+          id="phone_m"
+          name="phone_m"
+          required
+        />
+      </div>
+      <div class="mb-3">
+        <label for="work" class="form-label">Job Role</label>
+        <select class="form-select" id="job" name="job" required>
+          <option value="" selected disabled>Select</option>
+          <option value="Carpenter">Carpenter</option>
+          <option value="Plumber">Plumber</option>
+          <option value="Electrician">Electrician</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="mid" class="form-label">Username</label>
+        <input
+          type="text"
+          minlength="8"
+          class="form-control"
+          id="mid"
+          name="mid"
+          required
+        />
+      </div>
+      <button type="submit" class="btn btn-primary">
+        Create Maintenance Account
+      </button>
+    </form>
+  </div>
 </div>
 
 <script>
-    function toggleForms() {
-        const role = document.getElementById('role').value;
-        
-        // Hide all forms
-        document.getElementById('studentForm').style.display = 'none';
-        document.getElementById('securityForm').style.display = 'none';
-        document.getElementById('maintenanceForm').style.display = 'none';
+  function toggleForms() {
+    const role = document.getElementById("role").value;
 
-        // Show the relevant form
-        if (role === 'Student') {
-            document.getElementById('studentForm').style.display = 'block';
-        } else if (role === 'Security') {
-            document.getElementById('securityForm').style.display = 'block';
-        } else if (role === 'Maintenance') {
-            document.getElementById('maintenanceForm').style.display = 'block';
-        }
+    // Hide all forms
+    document.getElementById("studentForm").style.display = "none";
+    document.getElementById("securityForm").style.display = "none";
+    document.getElementById("maintenanceForm").style.display = "none";
+
+    // Show the relevant form
+    if (role === "Student") {
+      document.getElementById("studentForm").style.display = "block";
+    } else if (role === "Security") {
+      document.getElementById("securityForm").style.display = "block";
+    } else if (role === "Maintenance") {
+      document.getElementById("maintenanceForm").style.display = "block";
     }
+  }
 </script>
 
 {% endblock %}
