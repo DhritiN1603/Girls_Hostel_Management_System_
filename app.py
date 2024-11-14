@@ -119,7 +119,6 @@ def signup():
     return render_template("signup.html")
 
 # Admin Routes
-# Admin Routes
 @app.route("/admin/home", methods=["POST", "GET"])
 def admin_dashboard():
     if 'Username' not in session:
@@ -175,13 +174,12 @@ def announcements():
     if request.method == "POST":
         title = request.form.get("title")
         description = request.form.get("description")
-        date_posted = request.form.get("date")
 
-        if title and description and date_posted:
+        if title and description:
             try:
                 with connection.cursor() as cursor:
-                    sql = "INSERT INTO announcements (title, description, date_posted) VALUES (%s, %s, %s)"
-                    cursor.execute(sql, (title, description, date_posted))
+                    sql = "INSERT INTO announcements (title, description, date_posted) VALUES (%s, %s,CURDATE())"
+                    cursor.execute(sql, (title, description))
                     connection.commit()
                     flash("Announcement added successfully!", "success")
             except Exception as e:
@@ -203,6 +201,7 @@ def registered_students():
             registered_students = cursor.fetchall()
     except Exception as e:
         flash(f"Error fetching registered students: {str(e)}", "error")
+        print(f"Error fetching registered students: {str(e)}")
 
     return render_template("admin/registered.html", 
                            registered_students=registered_students, 
@@ -212,34 +211,74 @@ def registered_students():
 def complaints():
     if 'Username' not in session or session['Role'] != 'Admin':
         flash('Unauthorized access', 'error')
+        print('Unauthoriszed acess')
         return redirect(url_for('login'))
-    
-    complaints = []
+
+    if request.method == "POST":
+        complaint_id = request.form.get("complaint_id")
+        staff_name = request.form.get("staff_name")
+
+        if not complaint_id or not staff_name:
+            print("Error: Complaint ID or Staff Name is missing")
+            return jsonify(success=False, error="Complaint ID or Staff Name is missing"), 400
+
+        try:
+            with connection.cursor() as cursor:
+                # Update the assigned_staff column in the complaint table
+                sql_update = """
+                UPDATE complaint 
+                SET assigned_staff = %s 
+                WHERE c_id = %s
+                """
+                cursor.execute(sql_update, (staff_name, complaint_id))
+                connection.commit()
+            return jsonify(success=True)  # Return JSON response indicating success
+        except Exception as e:
+            print(f"Error updating complaint: {str(e)}")
+            return jsonify(success=False, error=str(e)), 500  # Return JSON response indicating failure
+
+    # GET request: Fetch complaints and staff data
     try:
         with connection.cursor() as cursor:
-            sql = """
+            sql_complaints = """
             SELECT 
+                c.c_id as complaint_id,
                 s.Name AS student_name,
                 c.R_NO AS room_no,
                 c.Description AS description,
+                c.Category AS Category,
                 c.Date_OF_SUBMISSION AS date_submitted,
-                c.Status AS status 
+                c.Status AS status,
+                c.assigned_staff AS assigned_staff
             FROM 
                 complaint c
             JOIN 
                 student s ON c.SRN = s.SRN
             WHERE 
-                s.Unit = %s
+                s.Unit = %s AND c.Status IN ('Pending', 'Assigned')
             """
-            user_unit=session['Unit']
-            cursor.execute(sql,user_unit)
+            user_unit = session['Unit']
+            cursor.execute(sql_complaints, user_unit)
             complaints = cursor.fetchall()
 
+            # Fetch staff by category
+            category_to_role = {
+                'Electrical': 'Electrician',
+                'Furniture': 'Carpenter',
+                'Plumbing': 'Plumber'
+            }
+            staff_by_category = {}
+            for category, role in category_to_role.items():
+                sql_staff = "SELECT Fname FROM maintenancestaff WHERE work=%s"
+                cursor.execute(sql_staff, (role,))
+                staff_by_category[category] = cursor.fetchall()
+
     except Exception as e:
-        flash(f"Error fetching complaints: {str(e)}", "error")
+        flash(f"Error fetching complaints or staff: {str(e)}", "error")
 
     return render_template("admin/complaints.html", 
                            complaints=complaints, 
+                           staff_by_category=staff_by_category, 
                            username=session.get('FName'))
 
 
@@ -635,12 +674,13 @@ def maintenance_dashboard():
     }
 
     # Get the work category for the maintenance staff
-    cursor.execute("SELECT Work FROM maintenancestaff WHERE M_ID = %s", (maintenance_id,))
+    cursor.execute("SELECT Work,Fname FROM maintenancestaff WHERE M_ID = %s", (maintenance_id,))
     maintenance_work_record = cursor.fetchone()
     cursor.close()
 
     if maintenance_work_record:
         work_code = maintenance_work_record['Work']
+        fname=maintenance_work_record['Fname']
         category = work_category_map.get(work_code)  # Get the complaint category
 
         # If a valid category is found, fetch matching complaints
@@ -649,9 +689,9 @@ def maintenance_dashboard():
             query = """
             SELECT C_ID, R_NO, Category, Description, Date_OF_SUBMISSION, Status 
             FROM complaint 
-            WHERE Category = %s
+            WHERE Category = %s AND assigned_staff=%s
             """
-            cursor.execute(query, (category,))
+            cursor.execute(query, (category,fname))
             complaints = cursor.fetchall()
             cursor.close()
             
