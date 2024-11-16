@@ -1,0 +1,153 @@
+-- Drop the existing complaints table
+DROP TABLE IF EXISTS complaint;
+
+-- Drop the existing visitor table
+DROP TABLE IF EXISTS visitor;
+
+-- Drop the existing logs table
+DROP TABLE IF EXISTS logs;
+
+
+-- Create a new complaints table with the specified structure
+CREATE TABLE complaint (
+    C_ID INT PRIMARY KEY AUTO_INCREMENT,
+    R_NO VARCHAR(3),
+    SRN VARCHAR(13),
+    Category ENUM('Electrical', 'Plumbing', 'Furniture', 'Other') NOT NULL,
+    Description VARCHAR(50),
+    Date_OF_SUBMISSION DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Status ENUM('Pending', 'Resolved') NOT NULL,
+    Unit_No ENUM('1', '2', '3') NOT NULL,
+    FOREIGN KEY (R_NO) REFERENCES room(R_No),
+    FOREIGN KEY (SRN) REFERENCES student(SRN)
+);
+
+
+-- Create the new visitor table with unit_no column
+CREATE TABLE visitor (
+    visitor_ID INT PRIMARY KEY AUTO_INCREMENT,
+    visitor_name VARCHAR(50),
+    gender ENUM('M', 'F'),
+    contact_no VARCHAR(10),
+    email VARCHAR(50),
+    city VARCHAR(50),
+    state VARCHAR(50),
+    visiting_SRN VARCHAR(13),
+    Relation ENUM('Parent/Guardian', 'Relative', 'Official', 'Other'),
+    unit_no ENUM('1', '2', '3'),
+    FOREIGN KEY (visiting_SRN) REFERENCES student(SRN)
+);
+
+
+
+-- Create the new logs table with unit_no column
+CREATE TABLE logs (
+    log_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Visitor_ID INT,
+    student_SRN VARCHAR(13),
+    entry_time DATETIME NOT NULL,
+    exit_time DATETIME DEFAULT NULL,
+    unit_no ENUM('1', '2', '3'),
+    FOREIGN KEY (Visitor_ID) REFERENCES visitor(visitor_ID),
+    FOREIGN KEY (student_SRN) REFERENCES student(SRN)
+);
+
+
+DELIMITER $$
+
+CREATE TRIGGER validate_password_before_update
+BEFORE UPDATE ON login_cred
+FOR EACH ROW
+BEGIN
+    DECLARE password_check INT;
+
+    -- Check if password is at least 8 characters long
+    IF LENGTH(NEW.Password) < 8 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Password must be at least 8 characters long';
+    END IF;
+
+    -- Check if password contains at least one uppercase letter
+    IF NEW.Password NOT REGEXP '[A-Z]' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Password must contain at least one uppercase letter';
+    END IF;
+
+    -- Check if password contains at least one lowercase letter
+    IF NEW.Password NOT REGEXP '[a-z]' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Password must contain at least one lowercase letter';
+    END IF;
+
+    -- Check if password contains at least one number
+    IF NEW.Password NOT REGEXP '[0-9]' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Password must contain at least one number';
+    END IF;
+
+    -- Check if password contains at least one special character
+    IF NEW.Password NOT REGEXP '[$@#&!]' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Password must contain at least one special character ($, @, #, &, or !)';
+    END IF;
+END$$
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE TRIGGER check_current_password_before_update
+BEFORE UPDATE ON login_cred
+FOR EACH ROW
+BEGIN
+    -- Check if the current password is correct
+    IF OLD.Password != NEW.Password THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Current password is incorrect';
+    END IF;
+
+    IF OLD.Password = NEW.Password THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'New password cannot be the same as the current password';
+    END IF;
+END //
+
+DELIMITER ;
+
+
+BEGIN
+    DECLARE day_of_week VARCHAR(10);
+    DECLARE breakfast_menu VARCHAR(255);
+    DECLARE lunch_menu VARCHAR(255);
+    DECLARE snacks_menu VARCHAR(255);
+    DECLARE dinner_menu VARCHAR(255);
+    DECLARE menu_string VARCHAR(1024);
+
+
+    SET day_of_week = DAYNAME(CURDATE());
+
+
+    SELECT breakfast, lunch, snacks, dinner
+    INTO breakfast_menu, lunch_menu, snacks_menu, dinner_menu
+    FROM menu
+    WHERE day = day_of_week
+    LIMIT 1;
+
+
+    IF breakfast_menu IS NULL THEN
+        SET breakfast_menu = 'No Menu Available';
+    END IF;
+    IF lunch_menu IS NULL THEN
+        SET lunch_menu = 'No Menu Available';
+    END IF;
+    IF snacks_menu IS NULL THEN
+        SET snacks_menu = 'No Menu Available';
+    END IF;
+    IF dinner_menu IS NULL THEN
+        SET dinner_menu = 'No Menu Available';
+    END IF;
+
+
+    SET menu_string = CONCAT('Breakfast: ', breakfast_menu, ', Lunch: ', lunch_menu,
+                             ', Snacks: ', snacks_menu, ', Dinner: ', dinner_menu);
+
+
+    RETURN menu_string;

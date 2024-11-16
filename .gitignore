@@ -1,3 +1,7 @@
+<<<<<<< HEAD
 #files to ignore
 .env
 __pycache__
+=======
+.env
+>>>>>>> dhriti_deeksha_merged

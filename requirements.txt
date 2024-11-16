@@ -1,0 +1,8 @@
+Flask==2.2.5              # The Flask framework
+mysql-connector-python     # MySQL connector for Python
+Flask-WTF                  # Forms handling and CSRF protection
+Flask-SQLAlchemy           # ORM for SQL databases (optional but useful)
+Flask-Migrate              # Database migrations for SQLAlchemy (optional)
+python-dotenv              # To load environment variables from .env files
+Flask-Login                # User session management (if needed for login/logout)
+Flask-Session              # Server-side session management (optional)

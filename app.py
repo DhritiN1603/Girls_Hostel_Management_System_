@@ -1,6 +1,10 @@
-from flask import Flask, redirect, url_for, render_template, request, session, flash,jsonify
-from sql_connector import get_connection
+from flask import Flask, redirect, url_for, render_template, request, session, flash, jsonify
+from db_connection import get_connection
 import pymysql
+from datetime import datetime
+import re
+from datetime import datetime
+
 
 app = Flask(__name__)
 app.secret_key = "dbms_ghms"
@@ -36,6 +40,7 @@ def login():
         username = request.form.get("username")
         password = request.form.get("password")
         role = request.form.get("role")
+        print(role,username,password)
 
         if connection:
             try:
@@ -45,6 +50,7 @@ def login():
                         (username, password)
                     )
                     result = my_cursor.fetchone()
+                    print(result)
 
                     if result:
                         selected_role = None
@@ -72,17 +78,17 @@ def login():
                             elif selected_role == 'Maintenance':
                                 return redirect(url_for('maintenance_dashboard'))
                         else:
-                            print("Invalid role selected for this user", "error")
+                            flash("Invalid role selected for this user", "error")
                     else:
-                        print("Invalid username or password", "error")
+                        flash("Invalid username or password", "error")
 
             except Exception as e:
                 print(f"Login error: {str(e)}")
-                print("An error occurred during login", "error")
+                flash("An error occurred during login", "error")
             finally:
                 my_cursor.close()
         else:
-            print("Database connection failed", "error")
+            flash("Database connection failed", "error")
     
     return render_template("login.html")
 
@@ -104,26 +110,27 @@ def signup():
                     """
                     my_cursor.execute(sql_query, (full_name, srn, year, unit))
                     connection.commit()
-                    print("Registration successful. You can now log in once room alloted.", "success")
+                    flash("Registration successful. You can now log in once room alloted.", "success")
                     return redirect(url_for('login'))
             except Exception as e:
-                print(f"An error occurred during signup: {str(e)}", "error")
+                flash(f"An error occurred during signup: {str(e)}", "error")
             finally:
                 my_cursor.close()
         else:
-            print("Failed to connect to the database", "error")
+            flash("Failed to connect to the database", "error")
 
     return render_template("signup.html")
 
 # Admin Routes
+# Admin Routes
 @app.route("/admin/home", methods=["POST", "GET"])
 def admin_dashboard():
     if 'Username' not in session:
-        print('Please login first', 'error')
+        flash('Please login first', 'error')
         return redirect(url_for('login'))
     
     if session['Role'] != 'Admin':
-        print('You do not have permission to access this page', 'error')
+        flash('You do not have permission to access this page', 'error')
         return redirect(url_for('login'))
     
     try:
@@ -149,7 +156,7 @@ def admin_dashboard():
             available_rooms=cursor.fetchone()['Available_Rooms']
             
     except Exception as e:
-        print(f"Error fetching announcements: {str(e)}", "error")
+        flash(f"Error fetching announcements: {str(e)}", "error")
         announcements = []
         total_students = 0
         active_complaints = 0
@@ -165,30 +172,29 @@ def admin_dashboard():
 @app.route("/admin/announcements", methods=["POST", "GET"])
 def announcements():
     if 'Username' not in session or session['Role'] != 'Admin':
-        print('Unauthorized access', 'error')
+        flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
 
     if request.method == "POST":
         title = request.form.get("title")
         description = request.form.get("description")
-        date_posted = request.form.get("date")
 
-        if title and description and date_posted:
+        if title and description:
             try:
                 with connection.cursor() as cursor:
-                    sql = "INSERT INTO announcements (title, description, date_posted) VALUES (%s, %s, %s)"
-                    cursor.execute(sql, (title, description, date_posted))
+                    sql = "INSERT INTO announcements (title, description, date_posted) VALUES (%s, %s,CURDATE())"
+                    cursor.execute(sql, (title, description))
                     connection.commit()
-                    print("Announcement added successfully!", "success")
+                    flash("Announcement added successfully!", "success")
             except Exception as e:
-                print(f"Error: {str(e)}", "error")
+                flash(f"Error: {str(e)}", "error")
 
     return render_template("admin/announcements.html", username=session.get('FName'))
 
 @app.route("/admin/registered", methods=["POST", "GET"])
 def registered_students():
     if 'Username' not in session or session['Role'] != 'Admin':
-        print('Unauthorized access', 'error')
+        flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
     registered_students = []
     try:
@@ -198,7 +204,7 @@ def registered_students():
             cursor.execute(sql,user_unit)
             registered_students = cursor.fetchall()
     except Exception as e:
-        print(f"Error fetching registered students: {str(e)}", "error")
+        flash(f"Error fetching registered students: {str(e)}", "error")
 
     return render_template("admin/registered.html", 
                            registered_students=registered_students, 
@@ -207,44 +213,84 @@ def registered_students():
 @app.route("/admin/complaints", methods=["POST", "GET"])
 def complaints():
     if 'Username' not in session or session['Role'] != 'Admin':
-        print('Unauthorized access', 'error')
+        flash('Unauthorized access', 'error')
+        print('Unauthoriszed acess')
         return redirect(url_for('login'))
-    
-    complaints = []
+
+    if request.method == "POST":
+        complaint_id = request.form.get("complaint_id")
+        staff_name = request.form.get("staff_name")
+
+        if not complaint_id or not staff_name:
+            print("Error: Complaint ID or Staff Name is missing")
+            return jsonify(success=False, error="Complaint ID or Staff Name is missing"), 400
+
+        try:
+            with connection.cursor() as cursor:
+                # Update the assigned_staff column in the complaint table
+                sql_update = """
+                UPDATE complaint 
+                SET assigned_staff = %s 
+                WHERE c_id = %s
+                """
+                cursor.execute(sql_update, (staff_name, complaint_id))
+                connection.commit()
+            return jsonify(success=True)  # Return JSON response indicating success
+        except Exception as e:
+            print(f"Error updating complaint: {str(e)}")
+            return jsonify(success=False, error=str(e)), 500  # Return JSON response indicating failure
+
+    # GET request: Fetch complaints and staff data
     try:
         with connection.cursor() as cursor:
-            sql = """
+            sql_complaints = """
             SELECT 
+                c.c_id as complaint_id,
                 s.Name AS student_name,
                 c.R_NO AS room_no,
                 c.Description AS description,
+                c.Category AS Category,
                 c.Date_OF_SUBMISSION AS date_submitted,
-                c.Status AS status 
+                c.Status AS status,
+                c.assigned_staff AS assigned_staff
             FROM 
                 complaint c
             JOIN 
                 student s ON c.SRN = s.SRN
             WHERE 
-                s.Unit = %s
+                s.Unit = %s AND c.Status IN ('Pending', 'Assigned')
             """
-            user_unit=session['Unit']
-            print(user_unit)
-            cursor.execute(sql,user_unit)
+            user_unit = session['Unit']
+            cursor.execute(sql_complaints, user_unit)
             complaints = cursor.fetchall()
-            print(complaints)
+
+            # Fetch staff by category
+            category_to_role = {
+                'Electrical': 'Electrician',
+                'Furniture': 'Carpenter',
+                'Plumbing': 'Plumber'
+            }
+            staff_by_category = {}
+            for category, role in category_to_role.items():
+                sql_staff = "SELECT Fname FROM maintenancestaff WHERE work=%s"
+                cursor.execute(sql_staff, (role,))
+                staff_by_category[category] = cursor.fetchall()
+
     except Exception as e:
-        print(f"Error fetching complaints: {str(e)}", "error")
+        flash(f"Error fetching complaints or staff: {str(e)}", "error")
 
     return render_template("admin/complaints.html", 
                            complaints=complaints, 
+                           staff_by_category=staff_by_category, 
                            username=session.get('FName'))
+
 
 
 @app.route("/admin/create_user", methods=["POST", "GET"])
 def create_user():
 
     if 'Username' not in session or session['Role'] != 'Admin':
-        print('Unauthorized access', 'error')
+        flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
     unit = session.get('Unit')
     room_list = []
@@ -255,10 +301,9 @@ def create_user():
             rooms = cursor.fetchall()
             room_list = [room['R_no'] for room in rooms]
     except Exception as e:
-        print(f"Error fetching rooms: {str(e)}")
+        flash(f"Error fetching rooms: {str(e)}")
     if request.method == "POST":
         role = request.form.get('role')
-        print(role,unit)
         try:
             cursor = connection.cursor()
             
@@ -280,7 +325,7 @@ def create_user():
                     INSERT INTO student (Name, SRN, Email, Phone_no, DOB, Unit, Branch, Year, Room_No, Address)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (full_name, srn, email, phone_no, dob, unit, branch, year, room, address))
-                print("Student created successfully!", "success")
+                flash("Student created successfully!", "success")
 
             elif role == 'Security':
                 # Insert into the security table, using S_ID as username and password
@@ -302,7 +347,7 @@ def create_user():
                     VALUES (%s,%s, %s, 'Security', %s)
                 """, (fname+" "+lname,s_id, s_id, unit))  # Password is the same as the S_ID
 
-                print("Security staff created successfully!", "success")
+                flash("Security staff created successfully!", "success")
 
             elif role == 'Maintenance':
                 # Insert into the maintenance staff table, using M_ID as username and password
@@ -322,9 +367,9 @@ def create_user():
                 cursor.execute("""
                     INSERT INTO login_cred (Fname ,Username, Password, Role, Unit)
                     VALUES (%s,%s, %s, 'Maintenance', %s)
-                """, (fname+" "+lname,m_id, m_id, unit))  # Password is the same as the M_ID
+                """, (fname+" "+lname,m_id, m_id, "NULL"))  # Password is the same as the M_ID
 
-                print("Maintenance staff created successfully!", "success")
+                flash("Maintenance staff created successfully!", "success")
         
             # Commit the transaction
             connection.commit()
@@ -332,7 +377,7 @@ def create_user():
 
         except pymysql.MySQLError as e:
             # Handle any database errors
-            print(f"An error occurred: {e}", "error")
+            flash(f"An error occurred: {e}", "alert")
             connection.rollback()
 
         finally:
@@ -346,7 +391,7 @@ def create_user():
 @app.route("/admin/menu", methods=["POST", "GET"])
 def menu():
     if 'Username' not in session or session['Role'] != 'Admin':
-        print('Unauthorized access', 'error')
+        flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
 
     try:
@@ -358,69 +403,515 @@ def menu():
                                 menu_items=menu_items, 
                                 username=session.get('FName'))
     except pymysql.Error as e:
-        print(f"An error occurred: {str(e)}", "error")
+        flash(f"An error occurred: {str(e)}", "error")
         return redirect(url_for('admin_dashboard'))
 
 @app.route('/edit_menu/<day>', methods=['POST'])
 def edit_menu(day):
-    # Get the updated menu data from the form submission
     breakfast = request.form['breakfast']
     lunch = request.form['lunch']
     snacks = request.form['snacks']
     dinner = request.form['dinner']
 
-    cursor = connection.cursor()
-    update_query = """
-    UPDATE menu_table
-    SET breakfast = %s, lunch = %s, snacks = %s, dinner = %s
-    WHERE day = %s;
-    """
-    try:
-        # Execute the update query with the provided values
-        cursor.execute(update_query, (breakfast, lunch, snacks, dinner, day))
-        connection.commit()  # Commit the transaction
-        return jsonify(success=True)
-    except Exception as e:
-        connection.rollback()
-        print("Error updating menu:", e)
-        return jsonify(success=False)
-    
+    with connection.cursor() as cursor:
+        update_query = """
+        UPDATE menu
+        SET breakfast = %s, lunch = %s, snacks = %s, dinner = %s
+        WHERE day = %s;
+        """
+        try:
+            cursor.execute(update_query, (breakfast, lunch, snacks, dinner, day))
+            connection.commit()
+            return jsonify(success=True)
+        except Exception as e:
+            connection.rollback()
+            ("Error updating menu:", e)
+            return jsonify(success=False)
 
+#---------------------X------------------------X-----------------------------------------
 
-# Student dashboard (add your student routes here)
-@app.route("/student/dashboard")
+@app.route("/student")
 def student_dashboard():
     if 'Username' not in session or session['Role'] != 'Student':
-        print('Unauthorized access', 'error')
+        flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
-    return render_template("student/dashboard.html", username=session.get('FName'))
 
+    username = session['Username']  # Assuming you store the username in session
+    student_srn = username.upper()  # Assuming the username is in the format S_<SRN>
 
-# Security dashboard (add your security routes here)
-@app.route("/security/dashboard")
-def security_dashboard():
-    if 'Username' not in session or session['Role'] != 'Security':
-        print('Unauthorized access', 'error')
+    cursor = connection.cursor()
+
+    # Fetch student details using the SRN
+    query_student = "SELECT * FROM student WHERE SRN = %s"
+    cursor.execute(query_student, (student_srn,))
+    student_details = cursor.fetchone()
+
+    if not student_details:
+        flash('Student details not found', 'error')
+        cursor.close()
         return redirect(url_for('login'))
-    return render_template("security/dashboard.html", username=session.get('FName'))
+
+    # Fetch room details using the Room_No from student details
+    room_no = student_details['Room_no']
+    query_room = "SELECT * FROM room WHERE R_No = %s"
+    cursor.execute(query_room, (room_no,))
+    room_details = cursor.fetchone()
+
+    # Fetch warden details based on the unit of the student
+    query_warden = "SELECT * FROM warden WHERE unit = %s"
+    cursor.execute(query_warden, (student_details['Unit'],))
+    warden_details = cursor.fetchone()
+
+    # Call the MySQL function to fetch the menu for today
+    cursor.execute("SELECT GetMenuForToday()")
+    menu_result = cursor.fetchone()
+
+    # Debugging: Check the menu result
+    print("Menu Result:", menu_result)
+
+    # Extract the menu string and parse it using regex
+    if menu_result and 'GetMenuForToday()' in menu_result:
+        menu_string = menu_result['GetMenuForToday()']  # Correctly access the value
+
+        # Use regular expression to capture each menu item
+        menu_regex = r"Breakfast: (.*?), Lunch: (.*?), Snacks: (.*?), Dinner: (.*)"
+        match = re.search(menu_regex, menu_string)
+
+        if match:
+            breakfast = match.group(1)
+            lunch = match.group(2)
+            snacks = match.group(3)
+            dinner = match.group(4)
+        else:
+            # If regex doesn't match, set default values
+            breakfast = lunch = snacks = dinner = "No Menu Available"
+
+        # Debugging: Check the extracted menu items
+        print(f"Breakfast: {breakfast}, Lunch: {lunch}, Snacks: {snacks}, Dinner: {dinner}")
+
+        # Create the menu dictionary to pass to the template
+        menu_item = {
+            'day': datetime.now().strftime('%A'),  # Get the current day
+            'breakfast': breakfast,
+            'lunch': lunch,
+            'snacks': snacks,
+            'dinner': dinner
+        }
+    else:
+        # Fallback if menu_result is empty
+        menu_item = {
+            'day': datetime.now().strftime('%A'),
+            'breakfast': 'No Menu Available',
+            'lunch': 'No Menu Available',
+            'snacks': 'No Menu Available',
+            'dinner': 'No Menu Available'
+        }
+
+    # Fetch the latest announcements from the announcements table
+    query_announcements = "SELECT title, description, date_posted FROM announcements ORDER BY date_posted DESC"
+    cursor.execute(query_announcements)
+    announcements = cursor.fetchall()
+
+    # Fetch roommates based on Room_No and Unit, excluding the current student
+    query_roommates = """
+        SELECT Name, SRN, Branch, Year, Phone_no FROM student 
+        WHERE Room_No = %s AND SRN != %s AND Unit = %s
+    """
+    cursor.execute(query_roommates, (room_no, student_srn, student_details['Unit']))
+    roommates = cursor.fetchall()
+
+    cursor.close()
+
+    return render_template("student.html", 
+                           menu=menu_item, 
+                           announcements=announcements, 
+                           username=session.get('FName'),
+                           student=student_details, 
+                           room=room_details, 
+                           warden=warden_details, 
+                           roommates=roommates)
 
 
-# Maintenance dashboard (add your maintenance routes here)
-@app.route("/maintenance/dashboard")
+
+@app.route('/submit-complaint', methods=['POST'])
+def submit_complaint():
+    if 'Username' not in session or session['Role'] != 'Student':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('login'))
+
+    category = request.form['Category']
+    description = request.form['Description']
+    username = session['Username'] # Assuming you store the username in session
+    cursor = connection.cursor()
+
+    # Fetch student details using the Username from session
+    query_student = "SELECT SRN, Room_No,Unit  FROM student WHERE SRN = %s"
+    cursor.execute(query_student, (username,))
+    student = cursor.fetchone()
+
+    if not student:
+        flash('Student not found', 'error')
+        return redirect(url_for('student_complaint'))
+
+    srn = student['SRN']
+    room_no = student['Room_No']
+    unit_no=student['Unit']
+    status = "Pending"
+
+    # Insert the complaint into the database
+    query = """
+    INSERT INTO complaint (R_NO, SRN, Category, Description, Date_OF_SUBMISSION, Status, Unit_No)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """
+    cursor.execute(query, (room_no, srn, category, description, datetime.now(), status, unit_no))
+    connection.commit()  # Commit the transaction
+
+    cursor.close()
+
+    # Redirect to the complaints page after submission
+    return redirect(url_for('student_complaint'))  # Ensure this matches the route for complaints
+
+@app.route('/student/complaint')
+def student_complaint():
+    if 'Username' not in session or session['Role'] != 'Student':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('login'))
+
+    username = session['Username']
+    print(f"Logged-in username: {username}")  # Debugging line to check username type and value
+
+    # Fetch student details
+    cursor = connection.cursor()  # Use dictionary cursor for easy access to columns
+    query_student = "SELECT SRN, Name FROM student WHERE SRN = %s"
+    cursor.execute(query_student, (username,))
+    student = cursor.fetchone()
+    print(student)  # Debugging line to check student data
+    cursor.close()  # Close the cursor after fetching the student data
+
+    # Check if student exists
+    if not student:
+        flash("Student not found.", "error")
+        return redirect(url_for('login'))
+
+    # Fetch complaints for the logged-in student using their SRN
+    cursor = connection.cursor()  # Use a new cursor for fetching complaints
+    query_complaints = """
+    SELECT C_ID, R_NO, Category, Description, Date_OF_SUBMISSION, Status
+    FROM complaint
+    WHERE SRN = %s
+    """
+    cursor.execute(query_complaints, (username,))
+    complaints = cursor.fetchall()
+    cursor.close()  # Close the cursor after fetching complaints
+
+    # Check if there are any complaints
+    message = "You have not filed any complaints yet." if not complaints else None
+
+    # Render template with student and complaints data
+    return render_template(
+        'complaint.html', 
+        complaints=complaints, 
+        message=message, 
+        username=username,
+        student=student
+    )
+
+@app.route('/student/update-password', methods=['GET', 'POST'])
+def student_update_password():
+    if 'Username' not in session or session['Role'] != 'Student':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('login'))
+
+    username = session['Username']
+
+    if request.method == 'POST':
+        current_password = request.form['currentPassword']
+        new_password = request.form['newPassword']
+        confirm_password = request.form['confirmPassword']
+
+        print(current_password)
+        print(new_password)
+        print(confirm_password)
+
+        # Check if passwords match
+        if new_password != confirm_password:
+            flash("Passwords do not match.", "error")
+            return redirect(url_for('student_update_password'))
+
+        # Check if the new password is the same as the current password
+        if new_password == current_password:
+            flash("New password cannot be the same as the current password.", "error")
+            return redirect(url_for('student_update_password'))
+
+        try:
+            # Check if the current password is correct
+            cursor = connection.cursor()
+            query_check_password = "SELECT Password FROM login_cred WHERE Username = %s"
+            cursor.execute(query_check_password, (username,))
+            result = cursor.fetchone()
+
+            if result is None:
+                flash("Username not found.", "error")
+                return redirect(url_for('student_update_password'))
+
+            if result['Password'] != current_password:
+                flash("Current password is incorrect.", "error")
+                return redirect(url_for('student_update_password'))
+
+            # Update the password in the database
+            query_update_password = "UPDATE login_cred SET Password = %s WHERE Username = %s"
+            cursor.execute(query_update_password, (new_password, username))
+            connection.commit()
+
+            flash("Password updated successfully", "success")
+            return redirect(url_for('student_dashboard'))
+
+        except Exception as e:
+            connection.rollback()  # Rollback in case of error
+            flash(f"Error: {str(e)}", "error")
+            return redirect(url_for('student_update_password'))
+
+        finally:
+            cursor.close()
+
+    # If it's a GET request, render the password update page
+    cursor = connection.cursor()
+    query_student = "SELECT SRN, Name FROM student WHERE SRN = %s"
+    cursor.execute(query_student, (username,))
+    student = cursor.fetchone()
+    cursor.close()
+
+    return render_template('update_password.html', student=student)
+
+
+
+
+@app.route('/maintenance')
 def maintenance_dashboard():
     if 'Username' not in session or session['Role'] != 'Maintenance':
-        print('Unauthorized access', 'error')
+        flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
-    return render_template("maintenance/dashboard.html", username=session.get('FName'))
+    
+    # Get the maintenance staff's ID or work from the session
+    maintenance_id = session['Username']  # Assuming Username is used to identify the staff
+    cursor = connection.cursor()
+
+    # Mapping between Work values in maintenancestaff and complaint categories
+    work_category_map = {
+        'Carpenter': 'Furniture',     # Carpenter maps to 'Furniture'
+        'Plumber': 'Plumbing',      # Plumber maps to 'Plumbing'
+        'Electrician': 'Electrical'     # Electrician maps to 'Electrical'
+    }
+
+    # Get the work category for the maintenance staff
+    cursor.execute("SELECT Work,Fname FROM maintenancestaff WHERE M_ID = %s", (maintenance_id,))
+    maintenance_work_record = cursor.fetchone()
+    cursor.close()
+
+    if maintenance_work_record:
+        work_code = maintenance_work_record['Work']
+        fname=maintenance_work_record['Fname']
+        category = work_category_map.get(work_code)  # Get the complaint category
+
+        # If a valid category is found, fetch matching complaints
+        if category:
+            cursor = connection.cursor()
+            query = """
+            SELECT C_ID, R_NO, Category, Description, Date_OF_SUBMISSION, Status 
+            FROM complaint 
+            WHERE Category = %s AND assigned_staff=%s
+            """
+            cursor.execute(query, (category,fname))
+            complaints = cursor.fetchall()
+            cursor.close()
+            
+            return render_template("maintenance.html", complaints=complaints, username=session.get('FName'))
+        else:
+            flash("Invalid work category for maintenance staff.", "error")
+            return redirect(url_for('login'))
+    else:
+        flash("Maintenance staff not found.", "error")
+        return redirect(url_for('login'))
+
+@app.route('/update_complaint_status/<int:c_id>', methods=['POST'])
+def update_complaint_status(c_id):
+    if 'Username' not in session or session['Role'] != 'Maintenance':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('login'))
+
+    cursor = connection.cursor()
+
+    # Check the current status of the complaint
+    cursor.execute('SELECT Status FROM complaint WHERE C_ID = %s', (c_id,))
+    result = cursor.fetchone()
+
+    # Update the status if it is pending
+    if result and result['Status'] == 'Pending':
+        cursor.execute('UPDATE complaint SET Status = %s WHERE C_ID = %s', ('Resolved', c_id))
+        connection.commit()
+        flash('Complaint status updated to Resolved', 'success')
+    else:
+        flash('Complaint not found or already resolved', 'warning')
+
+    cursor.close()
+    
+    # Redirect back to the maintenance page to refresh the data
+    return redirect(url_for('maintenance_dashboard'))
+
+@app.route("/security")
+def security_dashboard():
+    if 'Username' not in session or session['Role'] != 'Security':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('login'))
+
+    cursor = connection.cursor()
+    
+    # Fetch the security staff's unit based on their username from the session
+    cursor.execute("SELECT Unit FROM security WHERE S_ID = %s", (session['Username'],))
+    security_unit = cursor.fetchone()
+    print(security_unit)
+
+    # Ensure the security unit exists in session data before proceeding
+    if not security_unit:
+        flash("Unable to fetch security unit information.", "error")
+        return redirect(url_for('login'))
+
+    # Extract the unit from the result
+    unit_no = security_unit['Unit']  # Assuming fetchone() returns a tuple
+    print(unit_no)
+    # Fetch currently visiting visitors (exit time is NULL) for the same unit
+    cursor.execute("""
+        SELECT logs.log_ID, visitor.visitor_name, visitor.contact_no, visitor.Relation, 
+               student.Name AS visiting_student_name, student.Room_No, logs.entry_time 
+        FROM logs 
+        JOIN visitor ON logs.Visitor_ID = visitor.visitor_ID 
+        JOIN student ON logs.student_SRN = student.SRN 
+        WHERE logs.exit_time IS NULL AND logs.unit_no = %s
+    """, (unit_no,))
+    current_visitors = cursor.fetchall()
+    print(current_visitors)
+    
+    # Fetch visitor history (where exit time is NOT NULL) for the same unit
+    cursor.execute("""
+        SELECT logs.log_ID, visitor.visitor_name, visitor.contact_no, visitor.Relation, 
+               student.Name AS visiting_student_name, student.Room_No, logs.entry_time, logs.exit_time
+        FROM logs 
+        JOIN visitor ON logs.Visitor_ID = visitor.visitor_ID 
+        JOIN student ON logs.student_SRN = student.SRN 
+        WHERE logs.exit_time IS NOT NULL AND logs.unit_no = %s
+    """, (unit_no,))
+    visitor_history = cursor.fetchall()
+    print(visitor_history)
+    cursor.close()
+
+    return render_template("security.html", current_visitors=current_visitors, visitor_history=visitor_history, username=session.get('FName'))
 
 
-#---- common logout for all users-----------
+
+@app.route('/add_visitor', methods=['POST'])
+def add_visitor():
+    if 'Username' not in session or session['Role'] != 'Security':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('login'))
+
+    srn = request.form['visiting_SRN']
+    visitor_name = request.form['visitor_name']
+    gender = request.form['gender']
+    contact_no = request.form['contact_no']
+    email = request.form['email']
+    city = request.form['city']
+    state = request.form['state']
+    relation = request.form['relation']
+    
+    cursor = connection.cursor()
+
+    # Get the unit of the security staff from the session
+    cursor.execute("SELECT Unit FROM security WHERE S_ID = %s", (session['Username'],))
+    security_unit_record = cursor.fetchone()
+
+    if security_unit_record:
+        unit_no = security_unit_record['Unit']
+    else:
+        cursor.close()
+        flash("Unable to fetch security unit information.", "error")
+        return redirect(url_for('security_dashboard'))
+
+    # Get the unit of the student to verify it matches the security unit
+    cursor.execute("SELECT Unit FROM student WHERE SRN = %s", (srn,))
+    student_unit_record = cursor.fetchone()
+
+    if not student_unit_record or student_unit_record['Unit'] != unit_no:
+        cursor.close()
+        flash("The student is not from your unit. Cannot add visitor.", "error")
+        return redirect(url_for('security_dashboard'))
+
+    # Insert visitor record
+    cursor.execute("""
+        INSERT INTO visitor (visitor_name, gender, contact_no, email, city, state, visiting_SRN, Relation, unit_no)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """, (visitor_name, gender, contact_no, email, city, state, srn, relation, unit_no))
+    visitor_id = cursor.lastrowid
+
+    # Insert log record with entry time as current time, exit time as NULL, and unit as security's unit
+    cursor.execute("""
+        INSERT INTO logs (Visitor_ID, student_SRN, entry_time, unit_no)
+        VALUES (%s, %s, %s, %s)
+    """, (visitor_id, srn, datetime.now(), unit_no))
+    
+    connection.commit()
+    cursor.close()
+
+    flash("Visitor added successfully.", "success")
+    return redirect(url_for('security_dashboard'))
+
+
+@app.route('/record_exit/<int:log_id>', methods=['POST'])
+def record_exit(log_id):
+    if 'Username' not in session or session['Role'] != 'Security':
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('login'))
+
+    cursor = connection.cursor()
+
+    # Get the unit of the security staff from the session
+    cursor.execute("SELECT Unit FROM security WHERE S_ID = %s", (session['Username'],))
+    security_unit_record = cursor.fetchone()
+
+    # Ensure security unit exists in session data before proceeding
+    if security_unit_record:
+        unit_no = security_unit_record['Unit']
+    else:
+        cursor.close()
+        flash("Unable to fetch security unit information.", "error")
+        return redirect(url_for('security_dashboard'))
+
+    # Check if the log entry belongs to the same unit as the security staff
+    cursor.execute("""
+        SELECT log_ID FROM logs WHERE log_ID = %s AND unit_no = %s AND exit_time IS NULL
+    """, (log_id, unit_no))
+    log_entry = cursor.fetchone()
+
+    # Update exit time if the log entry exists and belongs to the correct unit
+    if log_entry:
+        cursor.execute("""
+            UPDATE logs SET exit_time = %s WHERE log_ID = %s
+        """, (datetime.now(), log_id))
+        connection.commit()
+        flash("Exit recorded successfully.", "success")
+    else:
+        flash("Log entry not found or already recorded.", "error")
+
+    cursor.close()
+
+    return redirect(url_for('security_dashboard'))
+
+
 # Logout route
 @app.route("/logout")
 def logout():
     if 'Username' in session:
         session.clear()
-        print("Successfully logged out", "success")
+        flash("Successfully logged out", "success")
     return redirect(url_for('landing'))
 
 if __name__ == "__main__":

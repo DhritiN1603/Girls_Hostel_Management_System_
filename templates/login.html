@@ -1,108 +1,282 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <title>Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>   
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
+      crossorigin="anonymous"
+    ></script>
     <style>
       .background-radial-gradient {
         background-color: hsl(218, 41%, 15%);
-        background-image: radial-gradient(100px circle at 0% 0%,hsl(218, 41%, 35%) 15%,hsl(218, 41%, 30%) 35%,hsl(218, 41%, 20%) 75%,hsl(218, 41%, 19%) 80%, transparent 100%),
-          radial-gradient(1250px circle at 100% 100%,hsl(218, 41%, 45%) 15%,hsl(218, 41%, 30%) 35%,hsl(218, 41%, 20%) 75%,hsl(218, 41%, 19%) 80%, transparent 100%);
+        background-image: radial-gradient(
+            100px circle at 0% 0%,
+            hsl(218, 41%, 35%) 15%,
+            hsl(218, 41%, 30%) 35%,
+            hsl(218, 41%, 20%) 75%,
+            hsl(218, 41%, 19%) 80%,
+            transparent 100%
+          ),
+          radial-gradient(
+            1250px circle at 100% 100%,
+            hsl(218, 41%, 45%) 15%,
+            hsl(218, 41%, 30%) 35%,
+            hsl(218, 41%, 20%) 75%,
+            hsl(218, 41%, 19%) 80%,
+            transparent 100%
+          );
       }
-      @keyframes float1 { 0%, 100% { transform: translate(0, 0); } 60% { transform: translate(30px, -30px); } }
-      @keyframes float2 { 0%, 100% { transform: translate(0, 0); } 60% { transform: translate(-20px, 40px); } }
-      @keyframes float3 { 0%, 100% { transform: translate(0, 0); } 60% { transform: translate(35px, -20px); } }
-      @keyframes float4 { 0%, 100% { transform: translate(0, 0); } 60% { transform: translate(-15px, 15px); } }
-    
+      @keyframes float1 {
+        0%,
+        100% {
+          transform: translate(0, 0);
+        }
+        60% {
+          transform: translate(30px, -30px);
+        }
+      }
+      @keyframes float2 {
+        0%,
+        100% {
+          transform: translate(0, 0);
+        }
+        60% {
+          transform: translate(-20px, 40px);
+        }
+      }
+      @keyframes float3 {
+        0%,
+        100% {
+          transform: translate(0, 0);
+        }
+        60% {
+          transform: translate(35px, -20px);
+        }
+      }
+      @keyframes float4 {
+        0%,
+        100% {
+          transform: translate(0, 0);
+        }
+        60% {
+          transform: translate(-15px, 15px);
+        }
+      }
+
       .circle {
         position: absolute;
         border-radius: 50%;
         opacity: 0.8;
       }
-    
-      #radius-shape-1 { height: 250px; width: 250px; top: -60px; left: -130px; background: radial-gradient(#e3a9e8, #110c94); animation: float1 9s ease-in-out infinite; }
-      #radius-shape-2 { height: 320px; width: 320px; bottom: -60px; right: -110px; background: radial-gradient(#e3a9e8, #0b075c); animation: float2 10s ease-in-out infinite; }
-      #radius-shape-3 { height: 300px; width: 300px; bottom: 60px; right: 1000px; background: radial-gradient(#e3a9e8, #13035c); animation: float3 12s ease-in-out infinite; }
-      #radius-shape-4 { height: 200px; width: 200px; top: 400px; left: -250px; background: radial-gradient(#e3a9e8, #390054); animation: float4 10s ease-in-out infinite; }
-    
+
+      #radius-shape-1 {
+        height: 250px;
+        width: 250px;
+        top: -60px;
+        left: -130px;
+        background: radial-gradient(#e3a9e8, #110c94);
+        animation: float1 9s ease-in-out infinite;
+      }
+      #radius-shape-2 {
+        height: 320px;
+        width: 320px;
+        bottom: -60px;
+        right: -110px;
+        background: radial-gradient(#e3a9e8, #0b075c);
+        animation: float2 10s ease-in-out infinite;
+      }
+      #radius-shape-3 {
+        height: 300px;
+        width: 300px;
+        bottom: 60px;
+        right: 1000px;
+        background: radial-gradient(#e3a9e8, #13035c);
+        animation: float3 12s ease-in-out infinite;
+      }
+      #radius-shape-4 {
+        height: 200px;
+        width: 200px;
+        top: 400px;
+        left: -250px;
+        background: radial-gradient(#e3a9e8, #390054);
+        animation: float4 10s ease-in-out infinite;
+      }
+
       /* Additional Shapes */
-      #radius-shape-5 { height: 120px; width: 120px; bottom: -110px; left: -750px; background: radial-gradient(#e3a9e8, #110c94); animation: float1 12s ease-in-out infinite; }
-      #radius-shape-6 { height: 150px; width: 150px; top: -170px; right: 1px; background: radial-gradient(#e8b2f8, #0d0a5a); animation: float2 10s ease-in-out infinite; }
-    
+      #radius-shape-5 {
+        height: 120px;
+        width: 120px;
+        bottom: -110px;
+        left: -750px;
+        background: radial-gradient(#e3a9e8, #110c94);
+        animation: float1 12s ease-in-out infinite;
+      }
+      #radius-shape-6 {
+        height: 150px;
+        width: 150px;
+        top: -170px;
+        right: 1px;
+        background: radial-gradient(#e8b2f8, #0d0a5a);
+        animation: float2 10s ease-in-out infinite;
+      }
+
       /* Glass effect for card background */
       .bg-glass {
         background-color: hsla(0, 0%, 100%, 0.9) !important;
         backdrop-filter: saturate(200%) blur(25px);
       }
     </style>
-    
-      
-</head>
-<body class="background-radial-gradient overflow:hidden">
+
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
+    <div class="container mt-3">
+      {% for category, message in messages %}
+      <div
+        class="alert alert-{{ category }} alert-dismissible fade show"
+        role="alert"
+      >
+        {{ message }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
+  </head>
+  <body class="background-radial-gradient overflow:hidden">
     <div class="container mt-4">
-    <div class="container-fluid  px-5 px-md-5 py-5 text-center text-lg-start my-5">
-      <div class="row gx-lg-5 align-items-center mb-5">
-        <div class="col-lg-6 mb-5 mb-lg-0" style="z-index: 10">
-          <h1 class="my-5 display-5 fw-bold ls-tight" style="color: hsl(218, 81%, 95%); font-size: 67px;">
-            Welcome to <br />
-            <span style="color: hsl(218, 81%, 75%)">Living Space</span>
-          </h1>
-        </div>     
+      <div
+        class="container-fluid px-5 px-md-5 py-5 text-center text-lg-start my-5"
+      >
+        <div class="row gx-lg-5 align-items-center mb-5">
+          <div class="col-lg-6 mb-5 mb-lg-0" style="z-index: 10">
+            <h1
+              class="my-5 display-5 fw-bold ls-tight"
+              style="color: hsl(218, 81%, 95%); font-size: 67px"
+            >
+              Welcome to <br />
+              <span style="color: hsl(218, 81%, 75%)">Living Space</span>
+            </h1>
+          </div>
 
-        <div class="col-lg-6 mb-5 mb-lg-0 position-relative">
-          <div id="radius-shape-1" class="position-absolute rounded-circle shadow-5-strong"></div>
-          <div id="radius-shape-2" class="position-absolute rounded-circle shadow-5-strong"></div>
-          <div id="radius-shape-3" class="position-absolute rounded-circle shadow-6-strong"></div>
-          <div id="radius-shape-4" class="position-absolute rounded-circle shadow-6-strong"></div>
-          <div id="radius-shape-5" class="position-absolute rounded-circle shadow-6-strong"></div>
-          <div id="radius-shape-6" class="position-absolute rounded-circle shadow-6-strong"></div>
-          <div class="card bg-glass">
-            <div class="card-body px-4 py-5 px-md-5">
-              <form method="POST">
-                <div class="row">
+          <div class="col-lg-6 mb-5 mb-lg-0 position-relative">
+            <div
+              id="radius-shape-1"
+              class="position-absolute rounded-circle shadow-5-strong"
+            ></div>
+            <div
+              id="radius-shape-2"
+              class="position-absolute rounded-circle shadow-5-strong"
+            ></div>
+            <div
+              id="radius-shape-3"
+              class="position-absolute rounded-circle shadow-6-strong"
+            ></div>
+            <div
+              id="radius-shape-4"
+              class="position-absolute rounded-circle shadow-6-strong"
+            ></div>
+            <div
+              id="radius-shape-5"
+              class="position-absolute rounded-circle shadow-6-strong"
+            ></div>
+            <div
+              id="radius-shape-6"
+              class="position-absolute rounded-circle shadow-6-strong"
+            ></div>
+            <div class="card bg-glass">
+              <div class="card-body px-4 py-5 px-md-5">
+                <form method="POST">
+                  <div class="row">
+                    <h1
+                      class="mb-5 h3"
+                      style="text-align: center; font-size: 35px"
+                    >
+                      Login
+                    </h1>
+                  </div>
 
-                  <h1 class="mb-5 h3" style="text-align: center;font-size: 35px;">Login</h1>
-                </div>
+                  <!-- Email input -->
+                  <div class="form-outline mb-4">
+                    <label class="form-label"
+                      >Username<red style="color: red"> * </red></label
+                    >
+                    <input
+                      required
+                      type="text"
+                      name="username"
+                      id="username"
+                      placeholder="Enter Your Username"
+                      class="form-control"
+                      autocomplete="off"
+                    />
+                  </div>
 
-                <!-- Email input -->
-                <div class="form-outline mb-4">
-                    <label class="form-label">Username<red style="color:red"> * </red></label>
-                  <input required type="text" name="username" id="username" placeholder="Enter Your Username" class="form-control" autocomplete="off"/>
-                  
-                </div>
+                  <!-- Password input -->
+                  <div class="form-outline mb-4">
+                    <label class="form-label"
+                      >Password<red style="color: red"> * </red></label
+                    >
+                    <input
+                      required
+                      type="password"
+                      minlength="4"
+                      name="password"
+                      id="psw"
+                      placeholder="Enter Your Password"
+                      class="form-control"
+                      autocomplete="off"
+                    />
+                  </div>
+                  <div class="form-outline mb-2">
+                    <label
+                      class="form-label"
+                      style="font-size: 1rem; display: block"
+                      >Login As <span style="color: red"> * </span></label
+                    >
+                    <select required name="role" id="role" class="form-control">
+                      <option value="" disabled selected>
+                        Select Your Role
+                      </option>
+                      <option value="1">Admin</option>
+                      <option value="2">Student</option>
+                      <option value="3">Security</option>
+                      <option value="4">Maintenance Staff</option>
+                    </select>
+                  </div>
+                  <div class="text-center">
+                    <button
+                      type="submit"
+                      class="btn btn-primary btn-block px-5 mb-3"
+                    >
+                      SIGNIN
+                    </button>
+                  </div>
 
-                <!-- Password input -->
-                <div class="form-outline mb-4">
-                    <label class="form-label">Password<red style="color:red"> * </red></label>
-                  <input required type="password" minlength="8" name="password" id="psw" placeholder="Enter Your Password" class="form-control" autocomplete="off" />
-                  
-                </div>
-                <div class="form-outline mb-2">
-                    <label class="form-label" style="font-size: 1rem; display: block;">Login As <span style="color:red"> * </span></label>
-                  <select required name="role" id="role" class="form-control">
-                    <option value="" disabled selected>Select Your Role</option>
-                    <option value="1">Admin</option>
-                    <option value="2">Student</option>
-                    <option value="3">Security</option>
-                    <option value="4">Maintenance Staff</option>
-                  </select>
-                  
-                </div>
-                <div class="text-center"><button type="submit" class="btn btn-primary btn-block px-5 mb-3">SIGNIN</button></div>            
-
-                <!-- TO redirect to the signup page -->
-                <div class="text-center">
-                  <p>Don't have an account yet? <a href="{{ url_for('signup') }}">  Register </a></p>
-
-                </div>
-              </form>          
+                  <!-- TO redirect to the signup page -->
+                  <div class="text-center">
+                    <p>
+                      Don't have an account yet?
+                      <a href="{{ url_for('signup') }}"> Register </a>
+                    </p>
+                  </div>
+                </form>
+              </div>
             </div>
-          </div>        
+          </div>
         </div>
       </div>
     </div>
-</div>
-
-</body>
+  </body>
 </html>

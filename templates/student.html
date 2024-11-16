@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Dashboard - Hostel Management</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/student.css') }}"
+    />
+  </head>
+  <body>
+    <div class="sidebar">
+      <div class="profile">
+        <div class="profile-image"></div>
+        <h3>{{ username }}</h3>
+        <!-- Student's First Name -->
+        <p>ID: {{ student.SRN }}</p>
+        <!-- Student ID -->
+      </div>
+      <div class="nav-links">
+        <a href="#" class="active">Dashboard</a>
+        <a href="/student/update-password">Update Password</a>
+        <a href="/student/complaint">Submit Complaint</a>
+        <a href="#menu">Mess Menu</a>
+        <a href="#announcements">Announcements</a>
+        <a href="/logout">Logout</a>
+        <!-- Logout link -->
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="dashboard-header">
+        <h1>Student Dashboard</h1>
+      </div>
+
+      <div class="dashboard-cards">
+        <div class="card">
+          <div class="card-header">Room Details</div>
+          <div class="info-row">
+            <strong>Room Number:</strong>
+            <span>{{ room.R_no }}</span>
+          </div>
+          <div class="info-row">
+            <strong>Floor:</strong>
+            <span>{{ room.Floor_no }}</span>
+          </div>
+          <div class="info-row">
+            <strong>Capacity:</strong>
+            <span>{{ room.Capacity }}</span>
+          </div>
+          <div class="info-row">
+            <strong>Occupied:</strong>
+            <span>{{ room.Occupied }}</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Warden Details</div>
+          <div class="info-row">
+            <strong>Warden Name:</strong>
+            <span>{{ warden.Fname }} {{ warden.Lname }}</span>
+          </div>
+          <div class="info-row">
+            <strong>Email:</strong>
+            <span>{{ warden.Email }}</span>
+          </div>
+          <div class="info-row">
+            <strong>Contact Number:</strong>
+            <span>{{ warden.Contact }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Roommates Card -->
+      <div class="card" style="margin-bottom: 5%">
+        <div class="card-header">Roommates</div>
+        <div class="roommates-info">
+          {% if roommates %} <ul class="list-group"> {% for roommate
+          in roommates %}
+          <li  style="margin:1%; color: #444"
+            class="list-group-item d-flex justify-content-between align-items-center"
+          >
+            <div>
+              <strong>{{ roommate.Name }}</strong> (ID: {{ roommate.SRN }})
+            </div>
+            <div>
+              <small><strong>Branch:</strong> {{ roommate.Branch }}</small
+              ><br />
+              <small><strong>Year:</strong> {{ roommate.Year }}</small><br />
+              <small><strong>Phone No:</strong> {{ roommate.Phone_no }}</small>
+            </div>
+          </li>
+          {% endfor %} {% else %}
+          <p>Roommates will be allotted soon.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Menu Card -->
+      <div class="card" style="margin-bottom: 30px" id="menu">
+        <div class="card-header">Today's Menu ({{ menu.day }})</div>
+        <div class="menu-grid">
+          <div class="menu-item">
+            <h4>Breakfast</h4>
+            <ul>
+              {% for item in menu.breakfast.split(',') %}
+              <li>{{ item.strip() }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="menu-item">
+            <h4>Lunch</h4>
+            <ul>
+              {% for item in menu.lunch.split(',') %}
+              <li>{{ item.strip() }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="menu-item">
+            <h4>Snacks</h4>
+            <ul>
+              {% for item in menu.snacks.split(',') %}
+              <li>{{ item.strip() }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="menu-item">
+            <h4>Dinner</h4>
+            <ul>
+              {% for item in menu.dinner.split(',') %}
+              <li>{{ item.strip() }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="container" id="announcements">
+        <h2 class="announcement-header">Latest Announcements</h2>
+
+        <div class="announcements-container">
+          {% for announcement in announcements %}
+          <div class="announcement-card">
+            <h3 class="announcement-title">{{ announcement['title'] }}</h3>
+            <p class="announcement-description">
+              {{ announcement['description'] }}
+            </p>
+            <p class="announcement-date">
+              Posted on: {{ announcement['date_posted'] }}
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+  </body>
+</html>

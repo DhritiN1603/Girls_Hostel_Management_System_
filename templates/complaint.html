@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Complaints Management</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/student_complaint.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="profile">
+        <div class="profile-image"></div>
+        <h3>{{ student.Name }}</h3>
+        <!-- Student's First Name -->
+        <p>ID: {{ student.SRN }}</p>
+      </div>
+      <div class="nav-links">
+        <a href="/student">Dashboard</a>
+        <a href="/student">Room Details</a>
+        <a href="/student/update-password" class="active">Update Password</a>
+        <a href="/student#menu">Mess Menu</a>
+        <a href="/student#announcements">Announcements</a>
+        <a href="logout.html">Logout</a>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="card">
+        <h2>Recent Complaints</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Complaint ID</th>
+              <th>Room</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Date of Submission</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for complaint in complaints %}
+            <tr id="complaint-{{ complaint.C_ID }}">
+              <td>#{{ complaint.C_ID }}</td>
+              <td>{{ complaint.R_NO }}</td>
+              <td>{{ complaint.Category }}</td>
+              <td>{{ complaint.Description }}</td>
+              <td>{{ complaint.Date_OF_SUBMISSION.strftime('%Y-%m-%d') }}</td>
+              <td>
+                <span class="status {{ complaint.Status|lower }}"
+                  >{{ complaint.Status }}</span
+                >
+              </td>
+              <td></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Submit New Complaint Card -->
+      <div class="card">
+        <div class="card-header">Submit New Complaint</div>
+        <form id="complaint-form" method="POST" action="/submit-complaint">
+          <div class="form-group">
+            <label for="complaint-type">Complaint Type</label>
+            <select id="complaint-type" name="Category" required>
+              <option value="" disabled selected>Select Type</option>
+              <option value="Electrical">Electrical</option>
+              <option value="Plumbing">Plumbing</option>
+              <option value="Furniture">Furniture</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea
+              id="description"
+              name="Description"
+              placeholder="Please describe your issue in detail..."
+              required
+            ></textarea>
+          </div>
+          <button type="submit" class="btn">Submit Complaint</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

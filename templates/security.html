@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visitor Management - GHMS</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/security.css') }}"
+    />
+  </head>
+  <body>
+    <nav>
+      <div class="nav-title">Visitor Management System</div>
+      <div class="security-info">
+        <span class="security-name">Guard on Duty: {{ username }}</span>
+        <!-- Displaying Username -->
+        <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+      </div>
+    </nav>
+
+    <div class="flash-container">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div class="flash-messages">
+        <ul>
+          {% for category, message in messages %}
+          <li class="flash-message {{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %} {% endwith %}
+    </div>
+
+    <div class="container">
+      <!-- New Visitor Entry Form -->
+      <div class="card">
+        <h2>Add New Visitor</h2>
+        <form
+          action="{{ url_for('add_visitor') }}"
+          method="POST"
+          class="form-grid"
+        >
+          <div class="form-group">
+            <label for="visiting_SRN">Visiting Student SRN *</label>
+            <input type="text" id="visiting_SRN" name="visiting_SRN" required />
+          </div>
+
+          <div class="form-group">
+            <label for="visitor_name">Visitor Name *</label>
+            <input type="text" id="visitor_name" name="visitor_name" required />
+          </div>
+
+          <div class="form-group">
+            <label for="gender">Gender *</label>
+            <select id="gender" name="gender" required>
+              <option value="M">Male</option>
+              <option value="F">Female</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="contact_no">Contact Number *</label>
+            <input
+              type="number"
+              maxlength="10"
+              id="contact_no"
+              name="contact_no"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" />
+          </div>
+
+          <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" />
+          </div>
+
+          <div class="form-group">
+            <label for="state">State</label>
+            <input type="text" id="state" name="state" />
+          </div>
+
+          <div class="form-group">
+            <label for="relation">Relation *</label>
+            <select id="relation" name="relation" required>
+              <option value="Parent/Guardian">Parent/Guardian</option>
+              <option value="Relative">Relative</option>
+              <option value="Official">Official</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="button-group">
+            <button type="submit" class="button">Add Visitor</button>
+            <button
+              type="reset"
+              class="button"
+              style="background-color: #95a5a6"
+            >
+              Clear Form
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Current Visitors Section -->
+      <div class="card">
+        <h2>Current Visitors</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Visitor Name</th>
+              <th>Visiting Student</th>
+              <th>Room Number</th>
+              <!-- Added Room Number Column -->
+              <th>Contact Number</th>
+              <th>Entry Time</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for visitor in current_visitors %}
+            <tr>
+              <td>{{ visitor.visitor_name }}</td>
+              <td>{{ visitor.visiting_student_name }}</td>
+              <!-- Displaying Student Name -->
+              <td>{{ visitor.Room_No }}</td>
+              <!-- Displaying Room Number -->
+              <td>{{ visitor.contact_no }}</td>
+              <td>{{ visitor.entry_time }}</td>
+              <td>
+                <form
+                  action="{{ url_for('record_exit', log_id=visitor.log_ID) }}"
+                  method="POST"
+                >
+                  <button type="submit" class="exit-btn">Record Exit</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Visitor History Section -->
+      <div class="card">
+        <h2>Visitor History</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Visitor Name</th>
+              <th>Visiting Student</th>
+              <th>Room Number</th>
+              <!-- Added Room Number Column -->
+              <th>Contact Number</th>
+              <th>Entry Time</th>
+              <th>Exit Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for visitor in visitor_history %}
+            <tr>
+              <td>{{ visitor.visitor_name }}</td>
+              <td>{{ visitor.visiting_student_name }}</td>
+              <!-- Displaying Student Name -->
+              <td>{{ visitor.Room_No }}</td>
+              <!-- Displaying Room Number -->
+              <td>{{ visitor.contact_no }}</td>
+              <td>{{ visitor.entry_time }}</td>
+              <td>{{ visitor.exit_time }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>

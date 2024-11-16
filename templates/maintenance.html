@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maintenance Portal - GHMS</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/maintenance.css') }}"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+  <body>
+    <nav>
+      <div class="navbar-content">
+        <h1>Maintenance Staff Portal - Girls Hostel Management System</h1>
+        <div class="user-info">
+          <span style="color: #f4f6f8">Welcome, {{ username }}</span>
+          <a href="{{ url_for('logout') }}" class="button logout-button"
+            >Logout</a
+          >
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <!-- Flask Flash Messages -->
+
+      <div id="messageBox" style="display: none" class="alert alert-info"></div>
+
+      <div class="card">
+        <h2>Complaints Dashboard</h2>
+        <table>
+          <tr>
+            <th>Complaint ID</th>
+            <th>Room</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+          {% for complaint in complaints %}
+          <tr id="complaint-{{ complaint.C_ID }}">
+            <td>#{{ complaint.C_ID }}</td>
+            <td>{{ complaint.R_NO }}</td>
+            <td>{{ complaint.Category }}</td>
+            <td>{{ complaint.Description }}</td>
+            <td>{{ complaint.Date_OF_SUBMISSION.strftime('%Y-%m-%d') }}</td>
+            <td>
+              <span class="status {{ complaint.Status|lower }}"
+                >{{ complaint.Status }}</span
+              >
+            </td>
+            <td>
+              <form
+                action="{{ url_for('update_complaint_status', c_id=complaint['C_ID']) }}"
+                method="POST"
+                style="display: inline"
+              >
+                <button
+                  type="submit"
+                  class="button"
+                  onclick="return confirmStatus('{{ complaint.Status }}')"
+                >
+                  Update
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+
+    <script>
+      function confirmStatus(status) {
+        if (status === "Resolved") {
+          showMessage("Complaint already resolved!");
+          return false; // Prevent form submission
+        }
+        return true; // Allow form submission
+      }
+
+      function showMessage(message) {
+        var messageBox = $("#messageBox");
+        messageBox.text(message).fadeIn();
+
+        setTimeout(function () {
+          messageBox.fadeOut();
+        }, 10000); // Display custom message for 10 seconds
+      }
+
+      // Hide flash messages after 10 seconds
+      setTimeout(function () {
+        $("#flash-messages").fadeOut(3000);
+      }, 10000); // Display flash messages for 10 seconds
+    </script>
+  </body>
+</html>

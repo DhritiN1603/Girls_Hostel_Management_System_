@@ -115,11 +115,27 @@
         box-sizing: border-box;
     }
 </style>
+<<<<<<< HEAD
+=======
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="container mt-3">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+>>>>>>> dhriti_deeksha_merged
 
 <body>
     <div class="menu-container">
         <div class="menu-grid">
             {% for item in menu_items %}
+<<<<<<< HEAD
     <div class="menu-card">
         <h1 class="day-header"><u><b>{{ item['day'] }}</b></u></h1>
         <br>
@@ -140,6 +156,31 @@
                 <button onclick="openEditModal({{ loop.index }})" class="edit-button">
                     Edit Menu
                 </button>
+=======
+            <div class="menu-card">
+                <h1 class="day-header"><u><b>{{ item['day'] }}</b></u></h1>
+                <br>
+                <div class="meal-section">
+                    <h6 class="meal-type">Breakfast</h6>
+                    <p class="meal-items">{{ item['breakfast'] }}</p>
+                    
+                    <h6 class="meal-type">Lunch</h6>
+                    <p class="meal-items">{{ item['lunch'] }}</p>
+                    
+                    <h6 class="meal-type">Snacks</h6>
+                    <p class="meal-items">{{ item['snacks'] }}</p>
+                    
+                    <h6 class="meal-type">Dinner</h6>
+                    <p class="meal-items">{{ item['dinner'] }}</p>
+                    <br>
+                </div>
+                
+                {% if session['Role'] == 'Admin' %}
+                <button onclick="openEditModal({{ loop.index }})" class="edit-button">
+                    Edit Menu
+                </button>
+                {% endif %}
+>>>>>>> dhriti_deeksha_merged
             </div>
             {% endfor %}
         </div>
@@ -182,26 +223,42 @@
     </div>
 
     <script>
+<<<<<<< HEAD
         // Function to open the modal and populate it with the current menu data
         function openEditModal(index) {
             const menuItem = document.querySelectorAll('.menu-card')[index - 1]; // index - 1 because loop.index starts from 1
 
             // Populate the modal with the current menu item data
+=======
+        function openEditModal(index) {
+            const menuItem = document.querySelectorAll('.menu-card')[index - 1];
+            document.getElementById('dayId').value = menuItem.querySelector('.day-header').textContent;
+
+>>>>>>> dhriti_deeksha_merged
             document.getElementById('editBreakfast').value = menuItem.querySelectorAll('.meal-items')[0].textContent;
             document.getElementById('editLunch').value = menuItem.querySelectorAll('.meal-items')[1].textContent;
             document.getElementById('editSnacks').value = menuItem.querySelectorAll('.meal-items')[2].textContent;
             document.getElementById('editDinner').value = menuItem.querySelectorAll('.meal-items')[3].textContent;
 
+<<<<<<< HEAD
             // Display the modal
             document.getElementById('editModal').style.display = "block";
         }
 
         // Function to close the modal
+=======
+            document.getElementById('editModal').style.display = "block";
+        }
+
+>>>>>>> dhriti_deeksha_merged
         function closeEditModal() {
             document.getElementById('editModal').style.display = "none";
         }
 
+<<<<<<< HEAD
         // Close the modal when the user clicks anywhere outside of it
+=======
+>>>>>>> dhriti_deeksha_merged
         window.onclick = function(event) {
             const modal = document.getElementById('editModal');
             if (event.target == modal) {
@@ -209,6 +266,7 @@
             }
         }
 
+<<<<<<< HEAD
             document.getElementById('editMenuForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -234,4 +292,28 @@
     .catch(error => console.error('Error:', error));
         });
     </script>
+=======
+        document.getElementById('editMenuForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const day = document.getElementById('dayId').value;
+            const formData = new FormData(this);
+            fetch(`/edit_menu/${day}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Menu updated successfully!');
+                    window.location.href = '/admin/menu';
+                } else {
+                    alert('Error updating menu!');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+>>>>>>> dhriti_deeksha_merged
 {% endblock %}
