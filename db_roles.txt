@@ -11,7 +11,7 @@ CREATE ROLE 'maintenance';
 CREATE ROLE 'security';
 
 --- Admin Role Privileges ---
-
+GRANT USAGE ON ghms.* TO 'admin';  -- Grant usage privilege for ghms database
 GRANT SELECT, INSERT, UPDATE, DELETE ON ghms.announcements TO 'admin';
 GRANT SELECT, UPDATE ON ghms.registered TO 'admin';
 GRANT SELECT, UPDATE, DELETE ON ghms.complaint TO 'admin';
@@ -20,30 +20,113 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON ghms.student TO 'admin';
 GRANT SELECT, UPDATE ON ghms.menu TO 'admin';
 GRANT SELECT, INSERT, UPDATE, DELETE ON ghms.login_cred TO 'admin';
 
-
-
------ student role privilages -----
-
+----- Student Role Privileges -----
+GRANT USAGE ON ghms.* TO 'student';  -- Grant usage privilege for ghms database
 GRANT SELECT, INSERT, UPDATE ON ghms.complaint TO 'student';
 GRANT SELECT ON ghms.menu TO 'student';
 GRANT SELECT ON ghms.student TO 'student';
 GRANT SELECT, UPDATE ON ghms.login_cred TO 'student';
 
-
-
------- maintenancestaff role privilages -------
-
+------ Maintenance Staff Role Privileges -------
+GRANT USAGE ON ghms.* TO 'maintenance';  -- Grant usage privilege for ghms database
 GRANT SELECT, UPDATE ON ghms.complaint TO 'maintenance';
 GRANT SELECT ON ghms.maintenancestaff TO 'maintenance';
 
-
 ------- Security Role Privileges ----
-
+GRANT USAGE ON ghms.* TO 'security';  -- Grant usage privilege for ghms database
 GRANT SELECT, INSERT, UPDATE ON ghms.visitor TO 'security';
 GRANT SELECT, INSERT, UPDATE ON ghms.logs TO 'security';
 GRANT SELECT ON ghms.security TO 'security';
 GRANT SELECT ON ghms.student TO 'security';
 
 
+SHOW GRANTS FOR 'admin'@'%';
+SHOW GRANTS FOR 'student'@'%';
+SHOW GRANTS FOR 'maintenance'@'%';
+SHOW GRANTS FOR 'security'@'%';
 
 
+
+-- For Alice Johnson (Student)
+CREATE USER IF NOT EXISTS 'PES1UG22CS001'@'%' IDENTIFIED BY 'Alice@2004';
+GRANT 'student' TO 'PES1UG22CS001'@'%';
+
+-- For Bob Smith (Student)
+CREATE USER IF NOT EXISTS 'PES1UG22ME002'@'%' IDENTIFIED BY 'BobSmith@2003';
+GRANT 'student' TO 'PES1UG22ME002'@'%';
+
+-- For Carol White (Student)
+CREATE USER IF NOT EXISTS 'PES1UG22EE003'@'%' IDENTIFIED BY 'PES1UG22EE003';
+GRANT 'student' TO 'PES1UG22EE003'@'%';
+
+-- For David Green (Student)
+CREATE USER IF NOT EXISTS 'PES1UG22EC004'@'%' IDENTIFIED BY 'PES1UG22EC004';
+GRANT 'student' TO 'PES1UG22EC004'@'%';
+
+-- For Emma Brown (Student)
+CREATE USER IF NOT EXISTS 'PES1UG22CS005'@'%' IDENTIFIED BY 'emma2004';
+GRANT 'student' TO 'PES1UG22CS005'@'%';
+
+-- For Frank Black (Student)
+CREATE USER IF NOT EXISTS 'PES1UG22ME006'@'%' IDENTIFIED BY 'PES1UG22ME006';
+GRANT 'student' TO 'PES1UG22ME006'@'%';
+
+-- For Henry Davis (Student)
+CREATE USER IF NOT EXISTS 'PES1UG22EC008'@'%' IDENTIFIED BY 'PES1UG22EC008';
+GRANT 'student' TO 'PES1UG22EC008'@'%';
+
+-- For Ivy Wilson (Student)
+CREATE USER IF NOT EXISTS 'PES1UG22CS009'@'%' IDENTIFIED BY 'PES1UG22CS009';
+GRANT 'student' TO 'PES1UG22CS009'@'%';
+
+-- For Tom Brown (Security)
+CREATE USER IF NOT EXISTS 'S_TomBrown'@'%' IDENTIFIED BY 'S_TomBrown';
+GRANT 'security' TO 'S_TomBrown'@'%';
+
+-- For Mike Johnson (Security)
+CREATE USER IF NOT EXISTS 'S_MikeJohnson'@'%' IDENTIFIED BY 'S_MikeJohnson';
+GRANT 'security' TO 'S_MikeJohnson'@'%';
+
+-- For Eve Wilson (Security)
+CREATE USER IF NOT EXISTS 'S_EveWilson'@'%' IDENTIFIED BY 'S_EveWilson';
+GRANT 'security' TO 'S_EveWilson'@'%';
+
+-- For Vijayalaxmi Sura (Admin)
+CREATE USER IF NOT EXISTS 'W_Vijayalaxmi'@'%' IDENTIFIED BY 'W_Vijayalaxmi';
+GRANT 'admin' TO 'W_Vijayalaxmi'@'%';
+
+-- For Gangawathi S (Admin)
+CREATE USER IF NOT EXISTS 'W_Gangawathi'@'%' IDENTIFIED BY 'W_Gangawathi';
+GRANT 'admin' TO 'W_Gangawathi'@'%';
+
+-- For Reema Gosh (Admin)
+CREATE USER IF NOT EXISTS 'W_Reema'@'%' IDENTIFIED BY 'W_Reema';
+GRANT 'admin' TO 'W_Reema'@'%';
+
+-- For Paul Adams (Maintenance)
+CREATE USER IF NOT EXISTS 'M_PaulAdams'@'%' IDENTIFIED BY 'M_PaulAdams';
+GRANT 'maintenance' TO 'M_PaulAdams'@'%';
+
+-- For Laura Brown (Maintenance)
+CREATE USER IF NOT EXISTS 'M_LauraBrown'@'%' IDENTIFIED BY 'M_LauraBrown';
+GRANT 'maintenance' TO 'M_LauraBrown'@'%';
+
+-- For Nick Davis (Maintenance)
+CREATE USER IF NOT EXISTS 'M_NickDavis'@'%' IDENTIFIED BY 'M_NickDavis';
+GRANT 'maintenance' TO 'M_NickDavis'@'%';
+
+-- For Grace Lee (Student)
+CREATE USER IF NOT EXISTS 'PES1UG22EE007'@'%' IDENTIFIED BY 'PES1UG22EE007';
+GRANT 'student' TO 'PES1UG22EE007'@'%';
+
+-- For Madhu S (Security)
+CREATE USER IF NOT EXISTS 'S_Madhu'@'%' IDENTIFIED BY 'S_Madhu';
+GRANT 'security' TO 'S_Madhu'@'%';
+
+-- For Ravi S (Maintenance)
+CREATE USER IF NOT EXISTS 'M_Ravi_S'@'%' IDENTIFIED BY 'M_Ravi_S';
+GRANT 'maintenance' TO 'M_Ravi_S'@'%';
+
+-- For Deepthi Ashok Karani (Student)
+CREATE USER IF NOT EXISTS 'PES1UG22CS174'@'%' IDENTIFIED BY 'PES1UG22CS174';
+GRANT 'student' TO 'PES1UG22CS174'@'%';

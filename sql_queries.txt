@@ -111,3 +111,43 @@ BEGIN
 END //
 
 DELIMITER ;
+
+
+BEGIN
+    DECLARE day_of_week VARCHAR(10);
+    DECLARE breakfast_menu VARCHAR(255);
+    DECLARE lunch_menu VARCHAR(255);
+    DECLARE snacks_menu VARCHAR(255);
+    DECLARE dinner_menu VARCHAR(255);
+    DECLARE menu_string VARCHAR(1024);
+
+
+    SET day_of_week = DAYNAME(CURDATE());
+
+
+    SELECT breakfast, lunch, snacks, dinner
+    INTO breakfast_menu, lunch_menu, snacks_menu, dinner_menu
+    FROM menu
+    WHERE day = day_of_week
+    LIMIT 1;
+
+
+    IF breakfast_menu IS NULL THEN
+        SET breakfast_menu = 'No Menu Available';
+    END IF;
+    IF lunch_menu IS NULL THEN
+        SET lunch_menu = 'No Menu Available';
+    END IF;
+    IF snacks_menu IS NULL THEN
+        SET snacks_menu = 'No Menu Available';
+    END IF;
+    IF dinner_menu IS NULL THEN
+        SET dinner_menu = 'No Menu Available';
+    END IF;
+
+
+    SET menu_string = CONCAT('Breakfast: ', breakfast_menu, ', Lunch: ', lunch_menu,
+                             ', Snacks: ', snacks_menu, ', Dinner: ', dinner_menu);
+
+
+    RETURN menu_string;

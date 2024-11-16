@@ -288,14 +288,12 @@ def complaints():
 
 @app.route("/admin/create_user", methods=["POST", "GET"])
 def create_user():
+
     if 'Username' not in session or session['Role'] != 'Admin':
         flash('Unauthorized access', 'error')
         return redirect(url_for('login'))
-    
     unit = session.get('Unit')
     room_list = []
-    
-    # Fetch available rooms for the admin's unit
     try:
         with connection.cursor() as cursor:
             sql_room = "SELECT R_no FROM room WHERE unit=%s"
@@ -304,14 +302,15 @@ def create_user():
             room_list = [room['R_no'] for room in rooms]
     except Exception as e:
         flash(f"Error fetching rooms: {str(e)}")
-    
     if request.method == "POST":
         role = request.form.get('role')
         try:
             cursor = connection.cursor()
             
             if role == 'Student':
-                # Collect student information
+                
+                # Insert into the student table
+                
                 full_name = request.form['name']
                 srn = request.form['srn']
                 email = request.form['email']
@@ -322,25 +321,14 @@ def create_user():
                 room = request.form['room']
                 address = request.form['address']
 
-                # Insert into student table
                 cursor.execute("""
                     INSERT INTO student (Name, SRN, Email, Phone_no, DOB, Unit, Branch, Year, Room_No, Address)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (full_name, srn, email, phone_no, dob, unit, branch, year, room, address))
-
-                # Insert into login_cred and set as MySQL user with 'student' role
-                cursor.execute("""
-                    INSERT INTO login_cred (Fname, Username, Password, Role, Unit)
-                    VALUES (%s, %s, %s, 'Student', %s)
-                """, (full_name, srn, srn, unit))  # Password set as SRN
-
-                cursor.execute(f"CREATE USER '{srn}'@'%' IDENTIFIED BY '{srn}';")
-                cursor.execute(f"GRANT 'student' TO '{srn}'@'%';")
-                
-                flash("Student created and role granted successfully!", "success")
+                flash("Student created successfully!", "success")
 
             elif role == 'Security':
-                # Collect security staff information
+                # Insert into the security table, using S_ID as username and password
                 s_id = request.form['sid']
                 fname = request.form['fname']
                 lname = request.form['lname']
@@ -353,19 +341,16 @@ def create_user():
                     VALUES (%s, %s, %s, %s, %s, %s)
                 """, (s_id, fname, lname, phone_no, unit, shift))
 
-                # Insert into login_cred and set as MySQL user with 'security' role
+                # Insert into login_cred table with username and password as S_ID
                 cursor.execute("""
-                    INSERT INTO login_cred (Fname, Username, Password, Role, Unit)
-                    VALUES (%s, %s, %s, 'Security', %s)
-                """, (fname + " " + lname, s_id, s_id, unit))  # Password set as S_ID
+                    INSERT INTO login_cred (Fname,Username, Password, Role, Unit)
+                    VALUES (%s,%s, %s, 'Security', %s)
+                """, (fname+" "+lname,s_id, s_id, unit))  # Password is the same as the S_ID
 
-                cursor.execute(f"CREATE USER '{s_id}'@'%' IDENTIFIED BY '{s_id}';")
-                cursor.execute(f"GRANT 'security' TO '{s_id}'@'%';")
-                
-                flash("Security staff created and role granted successfully!", "success")
+                flash("Security staff created successfully!", "success")
 
             elif role == 'Maintenance':
-                # Collect maintenance staff information
+                # Insert into the maintenance staff table, using M_ID as username and password
                 m_id = request.form['mid']
                 fname = request.form['fname_m']
                 lname = request.form['lname_m']
@@ -378,19 +363,17 @@ def create_user():
                     VALUES (%s, %s, %s, %s, %s)
                 """, (m_id, fname, lname, contact, work))
 
-                # Insert into login_cred and set as MySQL user with 'maintenance' role
+                # Insert into login_cred table with username and password as M_ID
                 cursor.execute("""
-                    INSERT INTO login_cred (Fname, Username, Password, Role, Unit)
-                    VALUES (%s, %s, %s, 'Maintenance', %s)
-                """, (fname + " " + lname, m_id, m_id, unit))  # Password set as M_ID
+                    INSERT INTO login_cred (Fname ,Username, Password, Role, Unit)
+                    VALUES (%s,%s, %s, 'Maintenance', %s)
+                """, (fname+" "+lname,m_id, m_id, "NULL"))  # Password is the same as the M_ID
 
-                cursor.execute(f"CREATE USER '{m_id}'@'%' IDENTIFIED BY '{m_id}';")
-                cursor.execute(f"GRANT 'maintenance' TO '{m_id}'@'%';")
-                
-                flash("Maintenance staff created and role granted successfully!", "success")
-
-            # Commit all changes after all operations
+                flash("Maintenance staff created successfully!", "success")
+        
+            # Commit the transaction
             connection.commit()
+
 
         except pymysql.MySQLError as e:
             # Handle any database errors
@@ -403,8 +386,7 @@ def create_user():
         return redirect(url_for('create_user'))
 
     # Render the form page
-    return render_template("admin/create_user.html", room_list=room_list, username=session.get('FName'))
-
+    return render_template("admin/create_user.html",room_list=room_list, username=session.get('FName'))
 
 @app.route("/admin/menu", methods=["POST", "GET"])
 def menu():
